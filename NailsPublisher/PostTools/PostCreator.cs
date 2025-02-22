@@ -1,29 +1,93 @@
-﻿using Telegram.Bot.Types;
+﻿using Microsoft.EntityFrameworkCore;
+using NailsPublisher.Database;
+using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace NailsPublisher.PostTools;
 
-public class PostCreator
+public static class PostCreator
 {
-    async Task PostLoop(Message msg)
+    public static async Task PostCmd(ITelegramBotClient botClient, Message msg)
     {
-        /*if (postUserSteps.ContainsKey(msg.From.Id) && postUserSteps[msg.From.Id] != "Finally")
+        using (ApplicationContext db = new ApplicationContext())
         {
-            if (postUserSteps[msg.From.Id] == "Title")
+            var chat = db.Chats
+                .Include(u => u.Users)
+                .ThenInclude(u => u.Posts)
+                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
+            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+            var post = user.Posts.LastOrDefault();
+            
+            if (post?.Step == "Finally" || user?.Posts.Count < 1)
             {
-                postUserTitle[msg.From.Id] = msg.Text;
-                await bot.SendMessage(msg.Chat.Id,
-                    $"Вы установили название поста на {msg.Text}. Напишите описание для поста: ", ParseMode.Markdown);
-                postUserSteps[msg.From.Id] = "Description";
+                if (user?.Posts.Count < 1)
+                {
+                    EntityList.Post newPost = new EntityList.Post
+                    {
+                        Step = "Start",
+                        Description = string.Empty,
+                        Price = 0,
+                        User = user
+                    };
+                    user.Posts.Add(newPost);
+                    await db.SaveChangesAsync();
+                }
+                else if (user?.Posts.Count >= 1 && post?.Step == "Finally")
+                {
+                    user.Posts.Clear();
+                    EntityList.Post newPost = new EntityList.Post()
+                    {
+                        Step = "Start",
+                        Description = string.Empty,
+                        Price = 0,
+                        User = user
+                    };
+                    user.Posts.Add(newPost);
+                    await db.SaveChangesAsync();
+                }
+                await PostLoop(botClient, msg);
             }
-            else if (postUserSteps[msg.From.Id] == "Description")
+        }
+    }
+    public static async Task PostLoop(ITelegramBotClient botClient, Message msg)
+    {
+        using (ApplicationContext db = new ApplicationContext())
+        {
+            var _chat = db.Chats
+                .Include(u => u.Users)
+                .ThenInclude(u => u.Posts)
+                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
+            var _user = _chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+            var _post = _user.Posts.Last();
+        
+            if (_post.Step != "Finally")
             {
-                postUserDescription[msg.From.Id] = msg.Text;
-                var post = postUserTitle[msg.From.Id] + $"\n{postUserDescription[msg.From.Id]}";
-                await bot.SendMessage(msg.Chat.Id, $"Ваш пост: {post}",
-                    ParseMode.Markdown);
-                postUserSteps[msg.From.Id] = "Finally";
+                if (_post.Step == "Start")
+                {
+                    await botClient.SendMessage(msg.Chat.Id,
+                        $"Установите описание для поста: ", ParseMode.Markdown);
+                    _post.Step = "Description";
+                    await db.SaveChangesAsync();
+                }
+                else if (_post.Step == "Description")
+                {
+                    _post.Description = msg.Text;
+                    await botClient.SendMessage(msg.Chat.Id,
+                        $"Вы установили описание поста на {msg.Text}. Напишите Цену для поста: ", ParseMode.Markdown);
+                    _post.Step = "Price";
+                    await db.SaveChangesAsync();
+                }
+                else if (_post.Step == "Price")
+                {
+                    _post.Price = short.Parse(msg.Text);
+                    var post = $"Ваш пост: \n<b>Описание:</b> <code>{_post.Description}</code> \n<b>Цена:</b> <code>{_post.Price}Р</code>";
+                    await botClient.SendMessage(msg.Chat.Id, post,
+                        ParseMode.Html);
+                    _post.Step = "Finally";
+                    await db.SaveChangesAsync();
+                }
             }
-        }*/
+        }
     }
 }

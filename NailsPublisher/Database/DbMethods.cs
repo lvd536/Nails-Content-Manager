@@ -8,7 +8,7 @@ namespace NailsPublisher.Database;
 
 public static class DbMethods
 {
-    public static async Task InitializeDbAsync(Message message, TelegramBotClient botClient)
+    public static async Task InitializeDbAsync(Message message)
     {
         using (ApplicationContext db = new ApplicationContext())
         {

@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.WebEncoders.Testing;
+using NailsPublisher.Database;
+using NailsPublisher.PostTools;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -22,17 +24,14 @@ async Task OnMessage(Message msg, UpdateType type)
     var command = commandParts[0];
     var argument = commandParts.Length >= 2 ? commandParts[1] : null;
     var defArgument = commandParts.Length >= 3 ? commandParts[2] : null;
+    if (!msg.Text.StartsWith('/'))  await PostCreator.PostLoop(bot, msg);
+    
     if (msg.Text.StartsWith('/'))
     {
         switch (command)
         {
             case "/post":
-                /*if (!postUserSteps.ContainsKey(msg.From.Id) || postUserSteps[msg.From.Id] == "Finally")
-                {
-                    postUserSteps.TryAdd(msg.From.Id, "Start");
-                    await bot.SendMessage(msg.Chat.Id, "Вы начали создание поста. Напишите название для поста: ", ParseMode.Markdown);
-                    postUserSteps[msg.From.Id] = "Title";
-                }*/
+                await PostCreator.PostCmd(bot, msg);
                 break;
         }
     }
