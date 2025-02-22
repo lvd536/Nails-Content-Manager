@@ -81,7 +81,7 @@ public static class PostCreator
                 else if (_post.Step == "Price")
                 {
                     _post.Price = short.Parse(msg.Text);
-                    var post = $"Ваш пост: \n<b>Описание:</b> <code>{_post.Description}</code> \n<b>Цена:</b> <code>{_post.Price}Р</code>";
+                    var post = $"Ваш пост: \n<blockquote><b>Описание:</b> <code>{_post.Description}</code></blockquote> \n<blockquote><b>Цена:</b> <code>{_post.Price}Р</code></blockquote>";
                     await botClient.SendMessage(msg.Chat.Id, post,
                         ParseMode.Html);
                     _post.Step = "Finally";
