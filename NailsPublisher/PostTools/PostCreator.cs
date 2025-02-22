@@ -54,56 +54,56 @@ public static class PostCreator
     {
         using (ApplicationContext db = new ApplicationContext())
         {
-            var _chat = db.Chats
+            var chat = db.Chats
                 .Include(u => u.Users)
                 .ThenInclude(u => u.Posts)
                 .FirstOrDefault(u => u.ChatId == msg.Chat.Id); // Перенести ниже
-            var _user = _chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            var _post = _user.Posts.Last();
-        
-            if (_post.Step != "Finally")
+            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+            var post = user.Posts.Last();
+            
+            if (post.Step != "Finally")
             {
-                if (_post.Step == "Start")
+                if (post.Step == "Start")
                 {
                     await botClient.SendMessage(msg.Chat.Id,
                         $"Установите описание для поста: ", ParseMode.Markdown);
-                    _post.Step = "Description";
+                    post.Step = "Description";
                     await db.SaveChangesAsync();
                 }
-                else if (_post.Step == "Description")
+                else if (post.Step == "Description")
                 {
-                    _post.Description = msg.Text;
+                    post.Description = msg.Text;
                     await botClient.SendMessage(msg.Chat.Id,
                         $"Вы установили описание поста на {msg.Text}. Напишите Цену для поста: ", ParseMode.Markdown);
-                    _post.Step = "Price";
+                    post.Step = "Price";
                     await db.SaveChangesAsync();
                 }
-                else if (_post.Step == "Price")
+                else if (post.Step == "Price")
                 {
                     try {
-                        _post.Price = short.Parse(msg.Text);
+                        post.Price = short.Parse(msg.Text);
                     } catch (FormatException) {
                         await botClient.SendMessage(msg.Chat.Id, "Для цены необходимо указать <b>только цифры</b>!", ParseMode.Html);
                         return;
                     }
                     await botClient.SendMessage(msg.Chat.Id,
                         $"Вы установили цену поста на {msg.Text}. Отправьте Фото для поста: ", ParseMode.Markdown);
-                    _post.Step = "Photo";
+                    post.Step = "Photo";
                     await db.SaveChangesAsync();
                 }
-                else if (_post.Step == "Photo")
+                else if (post.Step == "Photo")
                 {
-                    var post = "Ваш пост:" +
-                               $"<blockquote><b>Описание:</b> <code>{_post.Description}</code></blockquote>\n" +
-                               $"<blockquote><b>Цена:</b> <code>{_post.Price}Р</code></blockquote>";
+                    var message = "Ваш пост:" +
+                               $"<blockquote><b>Описание:</b> <code>{post.Description}</code></blockquote>\n" +
+                               $"<blockquote><b>Цена:</b> <code>{post.Price}Р</code></blockquote>";
                     try
                     {
-                        await botClient.SendPhoto(msg.Chat.Id, msg.Photo.Last(), post, ParseMode.Html);
+                        await botClient.SendPhoto(msg.Chat.Id, msg.Photo.Last(), message, ParseMode.Html);
                     } catch (ArgumentNullException) {
                         await botClient.SendMessage(msg.Chat.Id, "Вам необхожимо отправить фото, другие виды медиа не принимаются", ParseMode.Html);
                         return;
                     }
-                    _post.Step = "Finally";
+                    post.Step = "Finally";
                     await db.SaveChangesAsync();
                 }
             }
