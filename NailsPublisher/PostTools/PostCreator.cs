@@ -100,11 +100,12 @@ public static class PostCreator
                     var message = "Ваш пост:" +
                                $"<blockquote><b>Описание:</b> <code>{post.Description}</code></blockquote>\n" +
                                $"<blockquote><b>Цена:</b> <code>{post.Price}Р</code></blockquote>";
+                    var channel = user.ChannelId != null ? user.ChannelId : msg.Chat.Id;
                     try
                     {
-                        await botClient.SendPhoto(msg.Chat.Id, msg.Photo.Last(), message, ParseMode.Html);
+                        await botClient.SendPhoto(channel, msg.Photo.Last(), message, ParseMode.Html);
                     } catch (ArgumentNullException) {
-                        await botClient.SendMessage(msg.Chat.Id, "Вам необхожимо отправить фото, другие виды медиа не принимаются", ParseMode.Html);
+                        await botClient.SendMessage(msg.From.Id, "Вам необхожимо отправить фото, другие виды медиа не принимаются", ParseMode.Html);
                         return;
                     }
                     post.Step = "Finally";
@@ -143,15 +144,23 @@ public static class PostCreator
             var chat = db.Chats
                 .Include(u => u.Users)
                 .ThenInclude(u => u.Posts)
-                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
+                .FirstOrDefault(u => u.ChatId == msg.From.Id);
             var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            if (chat is null || user is null) await DbMethods.InitializeDbAsync(msg);
+            if (user is null)
+            {
+                await DbMethods.InitializeDbAsync(msg);
+                chat = db.Chats
+                    .Include(u => u.Users)
+                    .ThenInclude(u => u.Posts)
+                    .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
+                user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From.Id);
+            }
             if (msg.Chat.Type == ChatType.Channel)
             {
                 user.ChannelId = msg.Chat.Id;
                 await db.SaveChangesAsync();
+                //await botClient.SendMessage(msg.From.Id, "Успешно выбрали нужный канал для отправки!", ParseMode.Html);
                 await botClient.DeleteMessage(msg.Chat.Id, msg.MessageId);
-                await botClient.SendMessage(msg.From.Id, "Успешно выбрали нужный канал для отправки!", ParseMode.Html);
             }
         }
     }
