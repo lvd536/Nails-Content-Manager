@@ -19,12 +19,12 @@ Console.ReadLine();
 cts.Cancel();
 async Task OnMessage(Message msg, UpdateType type)
 {
+    if (msg.Text is null || !msg.Text.StartsWith('/'))  await PostCreator.PostLoop(bot, msg);
     if (msg.Text is null) return;
     var commandParts = msg.Text.Split(' ');
     var command = commandParts[0];
     var argument = commandParts.Length >= 2 ? commandParts[1] : null;
     var defArgument = commandParts.Length >= 3 ? commandParts[2] : null;
-    if (!msg.Text.StartsWith('/'))  await PostCreator.PostLoop(bot, msg);
     
     if (msg.Text.StartsWith('/'))
     {

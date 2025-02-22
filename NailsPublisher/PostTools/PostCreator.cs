@@ -81,11 +81,19 @@ public static class PostCreator
                 else if (_post.Step == "Price")
                 {
                     _post.Price = short.Parse(msg.Text);
+                    await botClient.SendMessage(msg.Chat.Id,
+                        $"Вы установили цену поста на {msg.Text}. Отправьте Фото для поста: ", ParseMode.Markdown);
+                    _post.Step = "Photo";
+                    await db.SaveChangesAsync();
+                }
+                else if (_post.Step == "Photo")
+                {
                     var post = "Ваш пост:" +
-                                $"<blockquote><b>Описание:</b> <code>{_post.Description}</code></blockquote>\n" +
-                                $"<blockquote><b>Цена:</b> <code>{_post.Price}Р</code></blockquote>";
-                    await botClient.SendMessage(msg.Chat.Id, post,
-                        ParseMode.Html);
+                               $"<blockquote><b>Описание:</b> <code>{_post.Description}</code></blockquote>\n" +
+                               $"<blockquote><b>Цена:</b> <code>{_post.Price}Р</code></blockquote>";
+                    /*await botClient.SendMessage(msg.Chat.Id, post,
+                        ParseMode.Html);*/
+                    await botClient.SendPhoto(msg.Chat.Id,msg.Photo.Last(), post, ParseMode.Html);
                     _post.Step = "Finally";
                     await db.SaveChangesAsync();
                 }
