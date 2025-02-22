@@ -33,6 +33,9 @@ async Task OnMessage(Message msg, UpdateType type)
             case "/post":
                 await PostCreator.PostCmd(bot, msg);
                 break;
+            case "/cancel":
+                await PostCreator.PostCancel(bot, msg);
+                break;
         }
     }
 }
