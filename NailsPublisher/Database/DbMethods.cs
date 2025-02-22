@@ -37,7 +37,7 @@ public static class DbMethods
                 {
                     UserId = message.From.Id
                 };
-                userData.Users.Add(newUser);
+                userData?.Users.Add(newUser);
                 await db.SaveChangesAsync();
             }
         }

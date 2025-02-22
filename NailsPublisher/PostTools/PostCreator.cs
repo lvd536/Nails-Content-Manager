@@ -17,7 +17,9 @@ public static class PostCreator
                 .ThenInclude(u => u.Posts)
                 .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
             var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            var post = user.Posts.LastOrDefault();
+            var post = user?.Posts.LastOrDefault();
+
+            if (chat is null || user is null) await DbMethods.InitializeDbAsync(msg);
             
             if (post?.Step == "Finally" || user?.Posts.Count < 1)
             {
@@ -57,9 +59,11 @@ public static class PostCreator
             var chat = db.Chats
                 .Include(u => u.Users)
                 .ThenInclude(u => u.Posts)
-                .FirstOrDefault(u => u.ChatId == msg.Chat.Id); // Перенести ниже
+                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
             var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            var post = user.Posts.Last();
+            var post = user?.Posts.LastOrDefault();
+            
+            if (chat is null || user is null) await DbMethods.InitializeDbAsync(msg);
             
             if (post.Step != "Finally")
             {
@@ -109,7 +113,6 @@ public static class PostCreator
             }
         }
     }
-    
     public static async Task PostCancel(ITelegramBotClient botClient, Message msg)
     {
         using (ApplicationContext db = new ApplicationContext())
@@ -119,13 +122,36 @@ public static class PostCreator
                 .ThenInclude(u => u.Posts)
                 .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
             var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            var post = user.Posts.LastOrDefault();
+            var post = user?.Posts.LastOrDefault();
+                        
+            if (chat is null || user is null) await DbMethods.InitializeDbAsync(msg);
+
             if (post.Step == "Finally") await botClient.SendMessage(msg.Chat.Id, "У вас нет активных форм создания постов", ParseMode.Html);
             else
             {
                 post.Step = "Finally";
                 await db.SaveChangesAsync();
                 await botClient.SendMessage(msg.Chat.Id, "Отменил создание поста!", ParseMode.Html);
+            }
+        }
+    }
+
+    public static async Task SetChannel(ITelegramBotClient botClient, Message msg)
+    {
+        using (ApplicationContext db = new ApplicationContext())
+        {
+            var chat = db.Chats
+                .Include(u => u.Users)
+                .ThenInclude(u => u.Posts)
+                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
+            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+            if (chat is null || user is null) await DbMethods.InitializeDbAsync(msg);
+            if (msg.Chat.Type == ChatType.Channel)
+            {
+                user.ChannelId = msg.Chat.Id;
+                await db.SaveChangesAsync();
+                await botClient.DeleteMessage(msg.Chat.Id, msg.MessageId);
+                await botClient.SendMessage(msg.From.Id, "Успешно выбрали нужный канал для отправки!", ParseMode.Html);
             }
         }
     }

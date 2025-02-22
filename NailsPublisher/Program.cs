@@ -36,6 +36,9 @@ async Task OnMessage(Message msg, UpdateType type)
             case "/cancel":
                 await PostCreator.PostCancel(bot, msg);
                 break;
+            case "/set":
+                await PostCreator.SetChannel(bot, msg);
+                break;
         }
     }
 }

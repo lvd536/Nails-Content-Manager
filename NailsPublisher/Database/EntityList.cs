@@ -13,6 +13,7 @@ public class EntityList
     {
         public int Id { get; set; }
         public int ChatId { get; set; }
+        public long ChannelId { get; set; }
         public long UserId { get; set; }
         public bool IsAdmin { get; set; }
         public Chat Chat { get; set; } = null!;
@@ -22,9 +23,9 @@ public class EntityList
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public string Step { get; set; } = null!;
-        public string Description { get; set; }
-        public short Price { get; set; }
+        public short Price { get; set; } = 0;
+        public string Step { get; set; } = "Finally";
+        public string Description { get; set; } = String.Empty;
         public User User { get; set; } = null!;
     }
 }
