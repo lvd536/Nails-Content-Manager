@@ -80,7 +80,12 @@ public static class PostCreator
                 }
                 else if (_post.Step == "Price")
                 {
-                    _post.Price = short.Parse(msg.Text);
+                    try {
+                        _post.Price = short.Parse(msg.Text);
+                    } catch (FormatException) {
+                        await botClient.SendMessage(msg.Chat.Id, "Для цены необходимо указать <b>только цифры</b>!", ParseMode.Html);
+                        return;
+                    }
                     await botClient.SendMessage(msg.Chat.Id,
                         $"Вы установили цену поста на {msg.Text}. Отправьте Фото для поста: ", ParseMode.Markdown);
                     _post.Step = "Photo";
@@ -91,9 +96,13 @@ public static class PostCreator
                     var post = "Ваш пост:" +
                                $"<blockquote><b>Описание:</b> <code>{_post.Description}</code></blockquote>\n" +
                                $"<blockquote><b>Цена:</b> <code>{_post.Price}Р</code></blockquote>";
-                    /*await botClient.SendMessage(msg.Chat.Id, post,
-                        ParseMode.Html);*/
-                    await botClient.SendPhoto(msg.Chat.Id,msg.Photo.Last(), post, ParseMode.Html);
+                    try
+                    {
+                        await botClient.SendPhoto(msg.Chat.Id, msg.Photo.Last(), post, ParseMode.Html);
+                    } catch (ArgumentNullException) {
+                        await botClient.SendMessage(msg.Chat.Id, "Вам необхожимо отправить фото, другие виды медиа не принимаются", ParseMode.Html);
+                        return;
+                    }
                     _post.Step = "Finally";
                     await db.SaveChangesAsync();
                 }
