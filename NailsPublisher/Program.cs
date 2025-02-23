@@ -44,7 +44,7 @@ async Task OnMessage(Message msg, UpdateType type)
                 if (argument is not null)
                 {
                     if (defArgument is null) defArgument = "00:00";
-                    argument += $" {defArgument}";
+                    argument += $".{DateTime.Now.Year} {defArgument}";
                     await OpenDates.CreateOpenDatesAsync(bot, msg, argument);
                 }
                 break;

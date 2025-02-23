@@ -37,7 +37,6 @@ public static class OpenDates
             var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
             var channel = user.ChannelId != 0 ? user.ChannelId : msg.Chat.Id;
             var message = "Календарь записей:\n";
-            
             if (user.OpenDates.Count < 0)
             {
                 await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Чтобы отправить календарь в канал создайте хотябы 1 запись с помощью /create", ParseMode.Html);
@@ -45,10 +44,9 @@ public static class OpenDates
             }
             else
             {
-                foreach (var d in user.OpenDates)
+                foreach (var d in user.OpenDates.OrderBy(d => d.Date))
                 {
-                    if (d.Date.Minute != 0) message += $"{d.Date.Day}.{d.Date.Month} {d.Date.Hour}:{d.Date.Minute}\n";
-                    else message += $"{d.Date.Day}.{d.Date.Month} {d.Date.Hour}:00\n";
+                    message +=$"{d.Date:dd.MM HH:mm}\n";
                 }
             }
             await botClient.SendMessage(channel, message, ParseMode.Html);
