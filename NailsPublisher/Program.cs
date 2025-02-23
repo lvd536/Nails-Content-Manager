@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.WebEncoders.Testing;
 using NailsPublisher.Database;
+using NailsPublisher.OpenDatesTools;
 using NailsPublisher.PostTools;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
@@ -38,6 +39,17 @@ async Task OnMessage(Message msg, UpdateType type)
                 break;
             case "/set":
                 await PostCreator.SetChannel(bot, msg);
+                break;
+            case "/create":
+                if (argument is not null)
+                {
+                    if (defArgument is null) defArgument = "00:00";
+                    argument += $" {defArgument}";
+                    await OpenDates.CreateOpenDatesAsync(bot, msg, argument);
+                }
+                break;
+            case "/send":
+                await OpenDates.SendOpenDatesAsync(bot, msg);
                 break;
         }
     }

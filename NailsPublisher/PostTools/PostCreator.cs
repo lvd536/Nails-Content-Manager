@@ -100,7 +100,7 @@ public static class PostCreator
                     var message = 
                         $"<blockquote><b>Описание:</b> <code>{post.Description}</code></blockquote>\n" +
                         $"<blockquote><b>Цена:</b> <code>{post.Price}Р</code></blockquote>";
-                    var channel = user.ChannelId != null ? user.ChannelId : msg.Chat.Id;
+                    var channel = user.ChannelId != 0 ? user.ChannelId : msg.Chat.Id;
                     try
                     {
                         await botClient.SendPhoto(channel, msg.Photo.Last(), message, ParseMode.Html);
