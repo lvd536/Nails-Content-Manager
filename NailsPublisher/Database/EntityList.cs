@@ -18,6 +18,7 @@ public class EntityList
         public bool IsAdmin { get; set; }
         public Chat Chat { get; set; } = null!;
         public List<Post> Posts { get; set; } = new List<Post>();
+        public List<OpenDate> OpenDates { get; set; } = new List<OpenDate>();
     }
     public class Post
     {
@@ -26,6 +27,15 @@ public class EntityList
         public short Price { get; set; } = 0;
         public string Step { get; set; } = "Finally";
         public string Description { get; set; } = String.Empty;
+        public User User { get; set; } = null!;
+    }
+
+    public class OpenDate
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public DateTime Date { get; set; }
+        public bool IsOpen { get; set; }
         public User User { get; set; } = null!;
     }
 }

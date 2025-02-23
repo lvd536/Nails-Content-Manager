@@ -39,6 +39,14 @@ public class ApplicationContext : DbContext
         
         modelBuilder.Entity<EntityList.Post>()
             .HasIndex(i => i.UserId);
+        
+        modelBuilder.Entity<EntityList.User>()
+            .HasMany(p => p.OpenDates)
+            .WithOne(U => U.User)
+            .HasForeignKey(i => i.UserId);
+        
+        modelBuilder.Entity<EntityList.OpenDate>()
+            .HasIndex(i => i.UserId);
     }
 }
 
