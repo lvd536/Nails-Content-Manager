@@ -47,7 +47,8 @@ public static class OpenDates
             {
                 foreach (var d in user.OpenDates)
                 {
-                    message += $"{d.Date.Day}-{d.Date.Month} {d.Date.Hour}:{d.Date.Minute}\n";
+                    if (d.Date.Minute != 0) message += $"{d.Date.Day}.{d.Date.Month} {d.Date.Hour}:{d.Date.Minute}\n";
+                    else message += $"{d.Date.Day}.{d.Date.Month} {d.Date.Hour}:00\n";
                 }
             }
             await botClient.SendMessage(channel, message, ParseMode.Html);
