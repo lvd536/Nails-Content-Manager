@@ -97,15 +97,16 @@ public static class PostCreator
                 }
                 else if (post.Step == "Photo")
                 {
-                    var message = "Ваш пост:" +
-                               $"<blockquote><b>Описание:</b> <code>{post.Description}</code></blockquote>\n" +
-                               $"<blockquote><b>Цена:</b> <code>{post.Price}Р</code></blockquote>";
+                    var message = 
+                        $"<blockquote><b>Описание:</b> <code>{post.Description}</code></blockquote>\n" +
+                        $"<blockquote><b>Цена:</b> <code>{post.Price}Р</code></blockquote>";
                     var channel = user.ChannelId != null ? user.ChannelId : msg.Chat.Id;
                     try
                     {
                         await botClient.SendPhoto(channel, msg.Photo.Last(), message, ParseMode.Html);
+                        await botClient.SendMessage(msg.From.Id, "Успешно отправил пост!", ParseMode.Html);
                     } catch (ArgumentNullException) {
-                        await botClient.SendMessage(msg.From.Id, "Вам необхожимо отправить фото, другие виды медиа не принимаются", ParseMode.Html);
+                        await botClient.SendMessage(msg.From.Id, "Вам необходимо отправить фото. Другие виды медиа не принимаются", ParseMode.Html);
                         return;
                     }
                     post.Step = "Finally";
@@ -159,9 +160,9 @@ public static class PostCreator
             {
                 user.ChannelId = msg.Chat.Id;
                 await db.SaveChangesAsync();
-                //await botClient.SendMessage(msg.From.Id, "Успешно выбрали нужный канал для отправки!", ParseMode.Html);
                 await botClient.DeleteMessage(msg.Chat.Id, msg.MessageId);
             }
+            else await botClient.SendMessage(msg.Chat.Id, "Вы не можете установить канал для отправки поста в личных сообщениях!", ParseMode.Html);
         }
     }
 }
