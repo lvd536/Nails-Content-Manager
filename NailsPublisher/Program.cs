@@ -54,6 +54,9 @@ async Task OnMessage(Message msg, UpdateType type)
             case "/rewrite":
                 await OpenDates.RewriteOpenDatesAsync(bot, msg);
                 break;
+            case "/checkexpiry":
+                await OpenDates.DelExpiryOpenDatesAsync(bot, msg);
+                break;
         }
     }
 }
