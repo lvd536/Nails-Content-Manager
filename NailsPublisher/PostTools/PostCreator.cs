@@ -8,7 +8,7 @@ namespace NailsPublisher.PostTools;
 
 public static class PostCreator
 {
-    public static async Task PostCmd(ITelegramBotClient botClient, Message msg)
+    public static async Task PostCmdAsync(ITelegramBotClient botClient, Message msg)
     {
         using (ApplicationContext db = new ApplicationContext())
         {
@@ -23,38 +23,23 @@ public static class PostCreator
 
             if (post?.Step == "Finally" || user?.Posts.Count < 1)
             {
-                if (user?.Posts.Count < 1)
+                EntityList.Post newPost = new EntityList.Post
                 {
-                    EntityList.Post newPost = new EntityList.Post
-                    {
-                        Step = "Start",
-                        Description = string.Empty,
-                        Price = 0,
-                        User = user
-                    };
-                    user.Posts.Add(newPost);
-                    await db.SaveChangesAsync();
-                }
-                else if (user?.Posts.Count >= 1 && post?.Step == "Finally")
-                {
-                    user.Posts.Clear();
-                    EntityList.Post newPost = new EntityList.Post()
-                    {
-                        Step = "Start",
-                        Description = string.Empty,
-                        Price = 0,
-                        User = user
-                    };
-                    user.Posts.Add(newPost);
-                    await db.SaveChangesAsync();
-                }
+                    Step = "Start",
+                    Description = string.Empty,
+                    Price = 0,
+                    Date = DateTime.Now,
+                    User = user
+                };
+                user.Posts.Add(newPost);
+                await db.SaveChangesAsync();
 
-                await PostLoop(botClient, msg);
+                await PostLoopAsync(botClient, msg);
             }
         }
     }
 
-    public static async Task PostLoop(ITelegramBotClient botClient, Message msg)
+    public static async Task PostLoopAsync(ITelegramBotClient botClient, Message msg)
     {
         using (ApplicationContext db = new ApplicationContext())
         {
@@ -77,7 +62,7 @@ public static class PostCreator
             }
 
             if (post?.Step == "Finally") return;
-            
+
             if (post?.Step == "Start")
             {
                 await botClient.SendMessage(msg.Chat.Id,
@@ -135,7 +120,7 @@ public static class PostCreator
         }
     }
 
-    public static async Task PostCancel(ITelegramBotClient botClient, Message msg)
+    public static async Task PostCancelAsync(ITelegramBotClient botClient, Message msg)
     {
         using (ApplicationContext db = new ApplicationContext())
         {
@@ -159,7 +144,7 @@ public static class PostCreator
         }
     }
 
-    public static async Task SetChannel(ITelegramBotClient botClient, Message msg)
+    public static async Task SetChannelAsync(ITelegramBotClient botClient, Message msg)
     {
         using (ApplicationContext db = new ApplicationContext())
         {
@@ -187,6 +172,51 @@ public static class PostCreator
             else
                 await botClient.SendMessage(msg.Chat.Id,
                     "Вы не можете установить канал для отправки поста в личных сообщениях!", ParseMode.Html);
+        }
+    }
+    public static async Task PostListCmdAsync(ITelegramBotClient botClient, Message msg)
+    {
+        using (ApplicationContext db = new ApplicationContext())
+        {
+            var chat = db.Chats
+                .Include(u => u.Users)
+                .ThenInclude(u => u.Posts)
+                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
+            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+            var post = user?.Posts.LastOrDefault();
+            var message = "Список ваших постов:\n";
+            var postList = user.Posts.ToList();
+            if (chat is null || user is null)
+            {
+                await DbMethods.InitializeDbAsync(msg);
+                chat = db.Chats
+                    .Include(u => u.Users)
+                    .ThenInclude(u => u.Posts)
+                    .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
+                user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+                post = user?.Posts.LastOrDefault();
+            }
+            
+            if (post?.Step != "Finally")
+            {
+                await botClient.SendMessage(msg.Chat.Id,"У вас есть незаконченная форма создания поста. Напишите /cancel чтобы остановить создание поста", ParseMode.Html);
+                await PostLoopAsync(botClient, msg);
+                return;
+            }
+            if (user.Posts.Count <= 0)
+            {
+                await botClient.SendMessage(msg.Chat.Id, "У вас нет созданных постов. Напишите /post чтобы создать его", ParseMode.Html);
+                return;
+            }
+
+            foreach (var p in postList)
+            {
+                message += $"<blockquote><b>Номер поста:</b> <i>{p.Id}</i>\n" +
+                           $"<b>Описание поста:</b> <code>{p.Description}</code>\n" +
+                           $"<b>Цена:</b> <code>{p.Price}</code>\n" +
+                           $"<b>Дата создания:</b> <code>{p.Date}</code></blockquote>\n";
+            }
+            await botClient.SendMessage(msg.Chat.Id, message, ParseMode.Html);
         }
     }
 }

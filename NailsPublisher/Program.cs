@@ -20,8 +20,13 @@ Console.ReadLine();
 cts.Cancel();
 async Task OnMessage(Message msg, UpdateType type)
 {
-    if (msg.Text is null || msg.Chat.Type == ChatType.Channel) return;
-    if (msg.Text is null || !msg.Text.StartsWith('/')) await PostCreator.PostLoop(bot, msg);
+    if (msg.Text is null)
+    {
+        if (msg.Type == MessageType.Photo) await PostCreator.PostLoopAsync(bot, msg);
+        return;
+    }
+    if (msg.Chat.Type == ChatType.Channel && !msg.Text.StartsWith("/set")) return;
+    if (msg.Text is null || !msg.Text.StartsWith('/')) await PostCreator.PostLoopAsync(bot, msg);
     var commandParts = msg.Text.Split(' ');
     var command = commandParts[0];
     var argument = commandParts.Length >= 2 ? commandParts[1] : null;
@@ -32,13 +37,13 @@ async Task OnMessage(Message msg, UpdateType type)
         switch (command)
         {
             case "/post":
-                await PostCreator.PostCmd(bot, msg);
+                await PostCreator.PostCmdAsync(bot, msg);
                 break;
             case "/cancel":
-                await PostCreator.PostCancel(bot, msg);
+                await PostCreator.PostCancelAsync(bot, msg);
                 break;
             case "/set":
-                await PostCreator.SetChannel(bot, msg);
+                await PostCreator.SetChannelAsync(bot, msg);
                 break;
             case "/create":
                 if (argument is not null)
@@ -56,6 +61,9 @@ async Task OnMessage(Message msg, UpdateType type)
                 break;
             case "/checkexpiry":
                 await OpenDates.DelExpiryOpenDatesAsync(bot, msg);
+                break;
+            case "/list":
+                await PostCreator.PostListCmdAsync(bot, msg);
                 break;
         }
     }

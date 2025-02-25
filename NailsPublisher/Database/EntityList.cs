@@ -28,6 +28,7 @@ public class EntityList
         public short Price { get; set; } = 0;
         public string Step { get; set; } = "Finally";
         public string Description { get; set; } = String.Empty;
+        public DateTime Date { get; set; }
         public User User { get; set; } = null!;
     }
 
