@@ -49,7 +49,8 @@ public static class OpenDates
                     message +=$"{d.Date:dd.MM HH:mm}\n";
                 }
             }
-            await botClient.SendMessage(channel, message, ParseMode.Html);
+            var sendMessage = await botClient.SendMessage(channel, message, ParseMode.Html);
+            await botClient.PinChatMessage(sendMessage.Chat.Id, sendMessage.MessageId);
         }
     }
 }
