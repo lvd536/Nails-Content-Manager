@@ -21,8 +21,8 @@ public static class DbMethods
             {
                 var newChat = new EntityList.Chat
                 {
-                    ChatId = message.Chat.Id,
-                    IsChannel = message.Chat.Type == ChatType.Private
+                    ChatId = message.From.Id,
+                    IsChannel = message.Chat.Type == ChatType.Channel
                 };
                 db.Chats.Add(newChat);
                 await db.SaveChangesAsync();
