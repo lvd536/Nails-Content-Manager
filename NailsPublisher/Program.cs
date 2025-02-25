@@ -3,6 +3,7 @@ using NailsPublisher.AdminTools;
 using NailsPublisher.Database;
 using NailsPublisher.OpenDatesTools;
 using NailsPublisher.PostTools;
+using NailsPublisher.Tools;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -99,6 +100,9 @@ async Task OnMessage(Message msg, UpdateType type)
                 break;
             case "/me":
                 await bot.SendMessage(msg.Chat.Id, $"Ваш TG ID: <code>{msg.From.Id}</code>", ParseMode.Html);
+                break;
+            case "/help":
+                await HelpCommand.HelpCommandAsync(bot, msg);
                 break;
         }
     }
