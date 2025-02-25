@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.WebEncoders.Testing;
+using NailsPublisher.AdminTools;
 using NailsPublisher.Database;
 using NailsPublisher.OpenDatesTools;
 using NailsPublisher.PostTools;
@@ -20,6 +21,7 @@ Console.ReadLine();
 cts.Cancel();
 async Task OnMessage(Message msg, UpdateType type)
 {
+    if (!CheckAdmin.IsAdminCheckAsync(bot, msg).Result) return;
     if (msg.Chat.Type is ChatType.Channel && !msg.Text.StartsWith("/pset")) return;
     if (msg.Text is null)
     {
@@ -81,6 +83,18 @@ async Task OnMessage(Message msg, UpdateType type)
                 break;
             case "/clist":
                 await OpenDates.OpenDateListCmdAsync(bot, msg);
+                break;
+            case "/makeadmin":
+                if (argument is null) return;
+                try {
+                    await AddAdmin.AddAdminAsync(bot, msg, long.Parse(argument));
+                } catch (Exception)
+                {
+                    await bot.SendMessage(msg.Chat.Id, "Вам необходимо установить UID юзера после комманды. Пример: /makeadmin 123465789", ParseMode.Html);
+                }
+                break;
+            case "/me":
+                await bot.SendMessage(msg.Chat.Id, $"Ваш TG ID: <code>{msg.From.Id}</code>", ParseMode.Html);
                 break;
         }
     }
