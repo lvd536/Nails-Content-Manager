@@ -60,7 +60,7 @@ public static class OpenDates
             var expiredDates = "Удаленные истекшие даты:\n";
             if (user.OpenDates.Count <= 0)
             {
-                await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Чтобы отправить календарь в канал создайте хотябы 1 запись с помощью /create", ParseMode.Html);
+                await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Чтобы отправить календарь в канал создайте хотябы 1 запись с помощью /ccreate", ParseMode.Html);
                 return;
             }
             else
@@ -86,7 +86,7 @@ public static class OpenDates
                     await botClient.SendMessage(msg.From.Id,"Календарь успешно обновлен\n" + expiredDates, ParseMode.Html);
                 } catch (Exception)
                 {
-                    await botClient.SendMessage(msg.From.Id,"Прошлое сообщение небыло найдено или не имеет изменений. Если хотите обнулить отслеживаемое сообщение, напишите: /rewrite", ParseMode.Html);
+                    await botClient.SendMessage(msg.From.Id,"Прошлое сообщение небыло найдено или не имеет изменений. Если хотите обнулить отслеживаемое сообщение, напишите: /crewrite", ParseMode.Html);
                 }
             }
             else
@@ -115,7 +115,7 @@ public static class OpenDates
                     .ThenInclude(u => u.OpenDates)
                     .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
             }
-            if (chat.LastDateMessageId == 0) await botClient.SendMessage(msg.From.Id,"У вас не установлено отслеживаемое сообщение. Чтобы установить его необходимо 1 раз отправить сообщение в канал: /set в канале, /send после этого", ParseMode.Html);
+            if (chat.LastDateMessageId == 0) await botClient.SendMessage(msg.From.Id,"У вас не установлено отслеживаемое сообщение. Чтобы установить его необходимо 1 раз отправить сообщение в канал: /pset в канале, /csend после этого", ParseMode.Html);
             else
             {
                 chat.LastDateMessageId = 0;
@@ -146,7 +146,7 @@ public static class OpenDates
             }
             if (user.OpenDates.Count <= 0)
             {
-                await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Чтобы посмотреть календарь создайте хотябы 1 запись с помощью /create", ParseMode.Html);
+                await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Чтобы посмотреть календарь создайте хотябы 1 запись с помощью /ccreate", ParseMode.Html);
                 return;
             }
             foreach (var d in datesList)
@@ -184,7 +184,7 @@ public static class OpenDates
             }
             if (user.OpenDates.Count <= 0)
             {
-                await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Создайте хотябы 1 запись с помощью /create", ParseMode.Html);
+                await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Создайте хотябы 1 запись с помощью /ccreate", ParseMode.Html);
                 return;
             }
             if (!datesList.Any(d => d.Id == id))

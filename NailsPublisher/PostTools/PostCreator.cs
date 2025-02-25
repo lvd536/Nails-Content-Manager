@@ -159,8 +159,8 @@ public static class PostCreator
                 chat = db.Chats
                     .Include(u => u.Users)
                     .ThenInclude(u => u.Posts)
-                    .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-                user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From.Id);
+                    .FirstOrDefault(u => u.ChatId == msg.From.Id);
+                user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
             }
 
             if (msg.Chat.Type == ChatType.Channel)
@@ -199,7 +199,7 @@ public static class PostCreator
             
             if (post?.Step != "Finally")
             {
-                await botClient.SendMessage(msg.Chat.Id,"У вас есть незаконченная форма создания поста. Напишите /cancel чтобы остановить создание поста", ParseMode.Html);
+                await botClient.SendMessage(msg.Chat.Id,"У вас есть незаконченная форма создания поста. Напишите /pcancel чтобы остановить создание поста", ParseMode.Html);
                 await PostLoopAsync(botClient, msg);
                 return;
             }
