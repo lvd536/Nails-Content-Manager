@@ -7,6 +7,7 @@ public class EntityList
         public int Id { get; set; }
         public long ChatId { get; set; }
         public bool IsChannel { get; set; }
+        public int LastDateMessageId { get; set; }
         public List<User> Users { get; set; } = new List<User>();
     }
     public class User

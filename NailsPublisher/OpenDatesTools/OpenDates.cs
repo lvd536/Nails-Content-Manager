@@ -49,8 +49,25 @@ public static class OpenDates
                     message +=$"{d.Date:dd.MM HH:mm}\n";
                 }
             }
-            var sendMessage = await botClient.SendMessage(channel, message, ParseMode.Html);
-            await botClient.PinChatMessage(sendMessage.Chat.Id, sendMessage.MessageId);
+            if (chat.LastDateMessageId != 0)
+            {
+                try
+                { 
+                    await botClient.EditMessageText(user.ChannelId, chat.LastDateMessageId, message, ParseMode.Html);
+                    await botClient.SendMessage(msg.From.Id,"Календарь успешно обновлен", ParseMode.Html);
+                } catch (Exception)
+                {
+                    await botClient.SendMessage(msg.From.Id,"Прошлое сообщение небыло найдено или не имеет изменений. Если хотите обнулить отслеживаемое сообщение, напишите: /rewrite", ParseMode.Html);
+                }
+            }
+            else
+            {
+                var sendMessage = await botClient.SendMessage(channel, message, ParseMode.Html);
+                await botClient.PinChatMessage(sendMessage.Chat.Id, sendMessage.MessageId);
+                chat.LastDateMessageId = sendMessage.MessageId;
+                await db.SaveChangesAsync();
+                await botClient.SendMessage(msg.From.Id,"Календарь свободных и занятых дат был успешно отправлен. Впредь изменения будут появляться в этом сообщении. Если вы хотите пересоздать календарь - просто удалите сообщение с календарем", ParseMode.Html);
+            }
         }
     }
 }
