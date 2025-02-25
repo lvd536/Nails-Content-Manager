@@ -20,13 +20,13 @@ Console.ReadLine();
 cts.Cancel();
 async Task OnMessage(Message msg, UpdateType type)
 {
-    if (msg.Chat.Type == ChatType.Channel && !msg.Text.StartsWith("/set")) return;
+    if (msg.Chat.Type is ChatType.Channel && !msg.Text.StartsWith("/pset")) return;
     if (msg.Text is null)
     {
         if (msg.Type == MessageType.Photo) await PostCreator.PostLoopAsync(bot, msg);
         return;
     }
-    if (msg.Text is null || !msg.Text.StartsWith('/')) await PostCreator.PostLoopAsync(bot, msg);
+    if (!msg.Text.StartsWith('/')) await PostCreator.PostLoopAsync(bot, msg);
     var commandParts = msg.Text.Split(' ');
     var command = commandParts[0];
     var argument = commandParts.Length >= 2 ? commandParts[1] : null;
@@ -51,9 +51,14 @@ async Task OnMessage(Message msg, UpdateType type)
             case "/ccreate":
                 if (argument is not null)
                 {
-                    if (defArgument is null) defArgument = "00:00";
-                    argument += $".{DateTime.Now.Year} {defArgument}";
-                    await OpenDates.CreateOpenDatesAsync(bot, msg, argument);
+                    try {
+                        if (defArgument is null) defArgument = "00:00";
+                        argument += $".{DateTime.Now.Year} {defArgument}";
+                        await OpenDates.CreateOpenDatesAsync(bot, msg, argument);
+                    } catch (Exception)
+                    {
+                        await bot.SendMessage(msg.Chat.Id, "Неправильно указана комманда. Пример: /ccreate 01.01 22:40 | /ccreate дата время", ParseMode.Html);
+                    }
                 }
                 break;
             case "/csend":
@@ -72,7 +77,7 @@ async Task OnMessage(Message msg, UpdateType type)
                 }
                 break;
             case "/ccheckexpiry":
-                await OpenDates.DelExpiryOpenDatesAsync(bot, msg);
+                await OpenDates.SendOpenDatesAsync(bot, msg);
                 break;
             case "/crewrite":
                 await OpenDates.RewriteOpenDatesAsync(bot, msg);

@@ -32,6 +32,7 @@ public static class OpenDates
             };
             user.OpenDates.Add(openDate);
             await db.SaveChangesAsync();
+            await SendOpenDatesAsync(botClient, msg);
             await botClient.SendMessage(msg.Chat.Id, "Вы успешно добавили дату в календарь записей!", ParseMode.Html);
         }
     }
@@ -54,12 +55,13 @@ public static class OpenDates
                 user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
             }
             var channel = user.ChannelId != 0 ? user.ChannelId : msg.Chat.Id;
-            var message = "Календарь записей:\n";
+            var message = "Owww nails౨ৎ\n" +
+                          "Записи:\n";
             var expiredDates = "Удаленные истекшие даты:\n";
             if (user.OpenDates.Count <= 0)
             {
                 await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Чтобы отправить календарь в канал создайте хотябы 1 запись с помощью /create", ParseMode.Html);
-                message += "Пусто.";
+                return;
             }
             else
             {
@@ -72,7 +74,8 @@ public static class OpenDates
                         await db.SaveChangesAsync();
                         continue;
                     }
-                    message +=$"{d.Date:dd.MM HH:mm}\n";
+                    message += $"<blockquote><b>Номер записи:</b> <i>{d.Id}</i>\n" +
+                               $"<b>Дата:</b> <code>{d.Date:dd.MM HH:mm}</code></blockquote>\n";
                 }
             }
             if (chat.LastDateMessageId != 0)
@@ -118,67 +121,6 @@ public static class OpenDates
                 chat.LastDateMessageId = 0;
                 await db.SaveChangesAsync();
                 await botClient.SendMessage(msg.From.Id,"Успешно обнулил отслеживаемое сообщение!", ParseMode.Html);
-            }
-        }
-    }
-    public static async Task DelExpiryOpenDatesAsync(ITelegramBotClient botClient, Message msg)
-    {
-        using (ApplicationContext db = new ApplicationContext())
-        {
-            var chat = db.Chats
-                .Include(u => u.Users)
-                .ThenInclude(u => u.OpenDates)
-                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            var channel = user.ChannelId != 0 ? user.ChannelId : msg.Chat.Id;
-            var message = "Календарь записей:\n";
-            var expiredDates = "Удаленные истекшие даты:\n";
-            if (chat is null || user is null)
-            {
-                await DbMethods.InitializeDbAsync(msg);
-                chat = db.Chats
-                    .Include(u => u.Users)
-                    .ThenInclude(u => u.OpenDates)
-                    .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-                user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            }
-            if (user.OpenDates.Count <= 0)
-            {
-                await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Чтобы отправить календарь в канал создайте хотябы 1 запись с помощью /create", ParseMode.Html);
-                message += "Пусто.";
-            }
-            else
-            {
-                foreach (var d in user.OpenDates.OrderBy(d => d.Date))
-                {
-                    if (d.Date < DateTime.Today)
-                    {
-                        expiredDates +=$"{d.Date:dd.MM HH:mm}\n";
-                        db.Remove(d);
-                        await db.SaveChangesAsync();
-                        continue;
-                    }
-                    message +=$"{d.Date:dd.MM HH:mm}\n";
-                }
-            }
-            if (chat.LastDateMessageId != 0)
-            {
-                try
-                { 
-                    await botClient.EditMessageText(user.ChannelId, chat.LastDateMessageId, message, ParseMode.Html);
-                    await botClient.SendMessage(msg.From.Id,"Календарь успешно обновлен, просроченные даты удалены\n" + expiredDates, ParseMode.Html);
-                } catch (Exception)
-                {
-                    await botClient.SendMessage(msg.From.Id,"Прошлое сообщение небыло найдено или не имеет изменений. Если хотите обнулить отслеживаемое сообщение, напишите: /rewrite", ParseMode.Html);
-                }
-            }
-            else
-            {
-                var sendMessage = await botClient.SendMessage(channel, message, ParseMode.Html);
-                await botClient.PinChatMessage(sendMessage.Chat.Id, sendMessage.MessageId);
-                chat.LastDateMessageId = sendMessage.MessageId;
-                await db.SaveChangesAsync();
-                await botClient.SendMessage(msg.From.Id,"Календарь свободных и занятых дат был успешно отправлен. Впредь изменения будут появляться в этом сообщении. Если вы хотите пересоздать календарь - просто удалите сообщение с календарем", ParseMode.Html);
             }
         }
     }
