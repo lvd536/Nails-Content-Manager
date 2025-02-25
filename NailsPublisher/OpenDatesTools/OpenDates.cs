@@ -32,11 +32,11 @@ public static class OpenDates
             };
             user.OpenDates.Add(openDate);
             await db.SaveChangesAsync();
-            await SendOpenDatesAsync(botClient, msg);
+            if (user.ChannelId != 0 && chat.LastDateMessageId != 0) await SendOpenDatesAsync(botClient, msg, false);
             await botClient.SendMessage(msg.Chat.Id, "Вы успешно добавили дату в календарь записей!", ParseMode.Html);
         }
     }
-    public static async Task SendOpenDatesAsync(ITelegramBotClient botClient, Message msg)
+    public static async Task SendOpenDatesAsync(ITelegramBotClient botClient, Message msg, bool update)
     {
         using (ApplicationContext db = new ApplicationContext())
         {
@@ -60,30 +60,29 @@ public static class OpenDates
             var expiredDates = "Удаленные истекшие даты:\n";
             if (user.OpenDates.Count <= 0)
             {
-                await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Чтобы отправить календарь в канал создайте хотябы 1 запись с помощью /ccreate", ParseMode.Html);
+                await botClient.SendMessage(msg.From.Id,"У вас нет добавленных/измененных записей. Чтобы отправить календарь в канал создайте хотябы 1 запись с помощью /ccreate", ParseMode.Html);
                 return;
             }
-            else
+
+            foreach (var d in user.OpenDates.OrderBy(d => d.Date))
             {
-                foreach (var d in user.OpenDates.OrderBy(d => d.Date))
+                if (d.Date < DateTime.Today)
                 {
-                    if (d.Date < DateTime.Today)
-                    {
-                        expiredDates +=$"{d.Date:dd.MM HH:mm}\n";
-                        db.Remove(d);
-                        await db.SaveChangesAsync();
-                        continue;
-                    }
-                    message += $"<blockquote><b>Номер записи:</b> <i>{d.Id}</i>\n" +
-                               $"<b>Дата:</b> <code>{d.Date:dd.MM HH:mm}</code></blockquote>\n";
+                    expiredDates +=$"{d.Date:dd.MM HH:mm}\n";
+                    db.Remove(d);
+                    await db.SaveChangesAsync();
+                    continue;
                 }
+                message += $"<blockquote><b>Номер записи:</b> <i>{d.Id}</i>\n" +
+                           $"<b>Дата:</b> <code>{d.Date:dd.MM HH:mm}</code></blockquote>\n";
             }
+            
             if (chat.LastDateMessageId != 0)
             {
                 try
                 { 
                     await botClient.EditMessageText(user.ChannelId, chat.LastDateMessageId, message, ParseMode.Html);
-                    await botClient.SendMessage(msg.From.Id,"Календарь успешно обновлен\n" + expiredDates, ParseMode.Html);
+                    if (update) await botClient.SendMessage(msg.From.Id,"Календарь успешно обновлен\n" + expiredDates, ParseMode.Html);
                 } catch (Exception)
                 {
                     await botClient.SendMessage(msg.From.Id,"Прошлое сообщение небыло найдено или не имеет изменений. Если хотите обнулить отслеживаемое сообщение, напишите: /crewrite", ParseMode.Html);

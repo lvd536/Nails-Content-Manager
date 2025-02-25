@@ -62,7 +62,7 @@ async Task OnMessage(Message msg, UpdateType type)
                 }
                 break;
             case "/csend":
-                await OpenDates.SendOpenDatesAsync(bot, msg);
+                await OpenDates.SendOpenDatesAsync(bot, msg, true);
                 break;
             case "/cdelete":
                 if (argument is null) await OpenDates.OpenDateDeleteCmdAsync(bot, msg, -1);
@@ -75,9 +75,6 @@ async Task OnMessage(Message msg, UpdateType type)
                         await bot.SendMessage(msg.Chat.Id, "Вам необходимо установить номер записи после комманды. Пример: /cdelete 5", ParseMode.Html);
                     }
                 }
-                break;
-            case "/ccheckexpiry":
-                await OpenDates.SendOpenDatesAsync(bot, msg);
                 break;
             case "/crewrite":
                 await OpenDates.RewriteOpenDatesAsync(bot, msg);
