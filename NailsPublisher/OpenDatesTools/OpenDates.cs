@@ -182,4 +182,79 @@ public static class OpenDates
             }
         }
     }
+    public static async Task OpenDateListCmdAsync(ITelegramBotClient botClient, Message msg)
+    {
+        using (ApplicationContext db = new ApplicationContext())
+        {
+            var chat = db.Chats
+                .Include(u => u.Users)
+                .ThenInclude(u => u.OpenDates)
+                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
+            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+            var datesList = user.OpenDates.OrderBy(d => d.Date).ToList();
+            var message = "Календарь:\n";
+            if (chat is null || user is null)
+            {
+                await DbMethods.InitializeDbAsync(msg);
+                chat = db.Chats
+                    .Include(u => u.Users)
+                    .ThenInclude(u => u.OpenDates)
+                    .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
+                user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+            }
+            if (user.OpenDates.Count <= 0)
+            {
+                await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Чтобы посмотреть календарь создайте хотябы 1 запись с помощью /create", ParseMode.Html);
+                return;
+            }
+            foreach (var d in datesList)
+            {
+                message += $"<blockquote><b>Номер записи:</b> <i>{d.Id}</i>\n" +
+                           $"<b>Дата:</b> <code>{d.Date:dd.MM HH:mm}</code></blockquote>\n";
+            }
+            await botClient.SendMessage(msg.Chat.Id, message, ParseMode.Html);
+        }
+    }
+    public static async Task OpenDateDeleteCmdAsync(ITelegramBotClient botClient, Message msg, int id)
+    {
+        if (id == -1)
+        {
+            await botClient.SendMessage(msg.Chat.Id, "Вы не указали <b>номер</b> даты, которую хотите удалить!", ParseMode.Html);
+            await OpenDateListCmdAsync(botClient, msg);
+            return;
+        }
+        using (ApplicationContext db = new ApplicationContext())
+        {
+            var chat = db.Chats
+                .Include(u => u.Users)
+                .ThenInclude(u => u.OpenDates)
+                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
+            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+            var datesList = user?.OpenDates.ToList();
+            if (chat is null || user is null)
+            {
+                await DbMethods.InitializeDbAsync(msg);
+                chat = db.Chats
+                    .Include(u => u.Users)
+                    .ThenInclude(u => u.OpenDates)
+                    .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
+                user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+            }
+            if (user.OpenDates.Count <= 0)
+            {
+                await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Создайте хотябы 1 запись с помощью /create", ParseMode.Html);
+                return;
+            }
+            if (!datesList.Any(d => d.Id == id))
+            {
+                await botClient.SendMessage(msg.Chat.Id, "ID слишком большое, даты под этим номером нет!", ParseMode.Html);
+                await OpenDateListCmdAsync(botClient, msg);
+                return;
+            }
+            var removeEntity = datesList.FirstOrDefault(d => d.Id == id);
+            user.OpenDates.Remove(removeEntity);
+            await db.SaveChangesAsync();
+            await botClient.SendMessage(msg.Chat.Id, $"Дата {removeEntity.Date} успешно удалена!", ParseMode.Html);
+        }
+    }
 }

@@ -20,12 +20,12 @@ Console.ReadLine();
 cts.Cancel();
 async Task OnMessage(Message msg, UpdateType type)
 {
+    if (msg.Chat.Type == ChatType.Channel && !msg.Text.StartsWith("/set")) return;
     if (msg.Text is null)
     {
         if (msg.Type == MessageType.Photo) await PostCreator.PostLoopAsync(bot, msg);
         return;
     }
-    if (msg.Chat.Type == ChatType.Channel && !msg.Text.StartsWith("/set")) return;
     if (msg.Text is null || !msg.Text.StartsWith('/')) await PostCreator.PostLoopAsync(bot, msg);
     var commandParts = msg.Text.Split(' ');
     var command = commandParts[0];
@@ -39,13 +39,16 @@ async Task OnMessage(Message msg, UpdateType type)
             case "/post":
                 await PostCreator.PostCmdAsync(bot, msg);
                 break;
-            case "/cancel":
+            case "/pcancel":
                 await PostCreator.PostCancelAsync(bot, msg);
                 break;
-            case "/set":
+            case "/pset":
                 await PostCreator.SetChannelAsync(bot, msg);
                 break;
-            case "/create":
+            case "/plist":
+                await PostCreator.PostListCmdAsync(bot, msg);
+                break;
+            case "/ccreate":
                 if (argument is not null)
                 {
                     if (defArgument is null) defArgument = "00:00";
@@ -53,17 +56,29 @@ async Task OnMessage(Message msg, UpdateType type)
                     await OpenDates.CreateOpenDatesAsync(bot, msg, argument);
                 }
                 break;
-            case "/send":
+            case "/csend":
                 await OpenDates.SendOpenDatesAsync(bot, msg);
                 break;
-            case "/rewrite":
-                await OpenDates.RewriteOpenDatesAsync(bot, msg);
+            case "/cdelete":
+                if (argument is null) await OpenDates.OpenDateDeleteCmdAsync(bot, msg, -1);
+                else
+                {
+                    try {
+                        await OpenDates.OpenDateDeleteCmdAsync(bot, msg, int.Parse(argument));
+                    } catch (Exception)
+                    {
+                        await bot.SendMessage(msg.Chat.Id, "Вам необходимо установить номер записи после комманды. Пример: /cdelete 5", ParseMode.Html);
+                    }
+                }
                 break;
-            case "/checkexpiry":
+            case "/ccheckexpiry":
                 await OpenDates.DelExpiryOpenDatesAsync(bot, msg);
                 break;
-            case "/list":
-                await PostCreator.PostListCmdAsync(bot, msg);
+            case "/crewrite":
+                await OpenDates.RewriteOpenDatesAsync(bot, msg);
+                break;
+            case "/clist":
+                await OpenDates.OpenDateListCmdAsync(bot, msg);
                 break;
         }
     }
