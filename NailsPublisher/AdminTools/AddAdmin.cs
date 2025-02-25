@@ -14,24 +14,23 @@ public static class AddAdmin
         {
             var chat = db.Chats
                 .Include(u => u.Users)
-                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+                .FirstOrDefault(u => u.ChatId == targetUid);
+            var user = chat?.Users.FirstOrDefault(u => u.UserId == targetUid);
             if (chat is null || user is null)
             {
                 await DbMethods.InitializeDbAsync(msg);
                 chat = db.Chats
                     .Include(u => u.Users)
-                    .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-                user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+                    .FirstOrDefault(u => u.ChatId == targetUid);
+                user = chat?.Users.FirstOrDefault(u => u.UserId == targetUid);
             }
-            var targetUser = chat?.Users.FirstOrDefault(u => u.UserId == targetUid);
-            if (user?.UserId != 1016623551) return;
-            if (targetUser is null) await botClient.SendMessage(msg.Chat.Id, "Такого пользователя нет в базе данных", ParseMode.Html);
+            if (msg.From.Id != 1016623551) return;
+            if (user is null) await botClient.SendMessage(msg.From.Id, "Такого пользователя нет в базе данных", ParseMode.Html);
             else
             {
-                targetUser.IsAdmin = true;
+                user.IsAdmin = true;
                 await db.SaveChangesAsync();
-                await botClient.SendMessage(msg.Chat.Id, $"Выдал пользователю <code>{targetUser.UserId}</code> роль администратора!", ParseMode.Html);
+                await botClient.SendMessage(msg.From.Id, $"Выдал пользователю <code>{user.UserId}</code> роль администратора!", ParseMode.Html);
             }
         }
     }

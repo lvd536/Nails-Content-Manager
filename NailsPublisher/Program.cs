@@ -21,7 +21,11 @@ Console.ReadLine();
 cts.Cancel();
 async Task OnMessage(Message msg, UpdateType type)
 {
-    if (!CheckAdmin.IsAdminCheckAsync(bot, msg).Result) return;
+    if (!CheckAdmin.IsAdminCheckAsync(bot, msg).Result && msg.Text != "/me")
+    {
+        await bot.SendMessage(msg.Chat.Id, "<b>Использовать бота может ТОЛЬКО ограниченный круг лиц!</b>", ParseMode.Html);
+        return;
+    }
     if (msg.Chat.Type is ChatType.Channel && !msg.Text.StartsWith("/pset")) return;
     if (msg.Text is null)
     {

@@ -14,7 +14,7 @@ public static class DbMethods
         {
             var userData = db.Chats
                 .Include(u => u.Users)
-                .FirstOrDefault(u => u.ChatId == message.Chat.Id);
+                .FirstOrDefault(u => u.ChatId == message.From.Id);
             var currentUser = userData?.Users?.FirstOrDefault(u => u.UserId == message.From?.Id);
             if (userData is not null && currentUser is not null) return;
             if (userData?.ChatId is null)
@@ -30,7 +30,7 @@ public static class DbMethods
 
             userData = db.Chats
                 .Include(u => u.Users)
-                .FirstOrDefault(u => u.ChatId == message.Chat.Id);
+                .FirstOrDefault(u => u.ChatId == message.From.Id);
             if (currentUser is null)
             {
                 var newUser = new EntityList.User
