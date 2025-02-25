@@ -51,6 +51,9 @@ async Task OnMessage(Message msg, UpdateType type)
             case "/send":
                 await OpenDates.SendOpenDatesAsync(bot, msg);
                 break;
+            case "/rewrite":
+                await OpenDates.RewriteOpenDatesAsync(bot, msg);
+                break;
         }
     }
 }

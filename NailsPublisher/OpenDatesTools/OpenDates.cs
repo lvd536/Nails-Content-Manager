@@ -55,6 +55,7 @@ public static class OpenDates
             }
             var channel = user.ChannelId != 0 ? user.ChannelId : msg.Chat.Id;
             var message = "Календарь записей:\n";
+            var expiredDates = "Удаленные истекшие даты:\n";
             if (user.OpenDates.Count < 0)
             {
                 await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Чтобы отправить календарь в канал создайте хотябы 1 запись с помощью /create", ParseMode.Html);
@@ -64,6 +65,13 @@ public static class OpenDates
             {
                 foreach (var d in user.OpenDates.OrderBy(d => d.Date))
                 {
+                    if (d.Date < DateTime.Today)
+                    {
+                        expiredDates +=$"{d.Date:dd.MM HH:mm}\n";
+                        db.Remove(d);
+                        await db.SaveChangesAsync();
+                        continue;
+                    }
                     message +=$"{d.Date:dd.MM HH:mm}\n";
                 }
             }
@@ -72,7 +80,7 @@ public static class OpenDates
                 try
                 { 
                     await botClient.EditMessageText(user.ChannelId, chat.LastDateMessageId, message, ParseMode.Html);
-                    await botClient.SendMessage(msg.From.Id,"Календарь успешно обновлен", ParseMode.Html);
+                    await botClient.SendMessage(msg.From.Id,"Календарь успешно обновлен\n" + expiredDates, ParseMode.Html);
                 } catch (Exception)
                 {
                     await botClient.SendMessage(msg.From.Id,"Прошлое сообщение небыло найдено или не имеет изменений. Если хотите обнулить отслеживаемое сообщение, напишите: /rewrite", ParseMode.Html);
