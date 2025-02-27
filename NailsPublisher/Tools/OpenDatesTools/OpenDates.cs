@@ -210,6 +210,7 @@ public static class OpenDates
             user.OpenDates.Remove(removeEntity);
             await db.SaveChangesAsync();
             await botClient.SendMessage(msg.Chat.Id, $"Дата {removeEntity.Date} успешно удалена!", ParseMode.Html);
+            if (user.ChannelId != 0 && chat.LastDateMessageId != 0) await SendOpenDatesAsync(botClient, msg, false);
         }
     }
 }
