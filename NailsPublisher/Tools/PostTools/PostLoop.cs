@@ -71,7 +71,7 @@ public static class PostLoop
                 }
 
                 await botClient.SendMessage(msg.Chat.Id,
-                    $"Вы установили цену поста на {msg.Text}. Отправьте Фото для поста: ", ParseMode.Markdown);
+                    $"Вы установили цену поста на {msg.Text}. Отправьте Фото или Видео для поста: ", ParseMode.Markdown);
                 post.Step = "Photo";
                 await db.SaveChangesAsync();
             }
