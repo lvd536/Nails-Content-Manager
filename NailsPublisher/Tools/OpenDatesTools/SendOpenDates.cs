@@ -4,6 +4,8 @@ using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
+
 namespace NailsPublisher.OpenDatesTools;
 
 public static class SendOpenDates
@@ -30,6 +32,10 @@ public static class SendOpenDates
             var message = "Owww nails౨ৎ\n" +
                           "Записи:\n";
             var expiredDates = "Удаленные истекшие даты:\n";
+            var buttons = new InlineKeyboardMarkup()
+                .AddButton(InlineKeyboardButton.WithUrl("Записаться", "https://t.me/oliweeshka"))
+                .AddNewRow()
+                .AddButton(InlineKeyboardButton.WithUrl("Заказать бота", "https://t.me/lvdshka"));
             if (user.OpenDates.Count <= 0)
             {
                 await botClient.SendMessage(msg.From.Id,"У вас нет добавленных/измененных записей. Чтобы отправить календарь в канал создайте хотябы 1 запись с помощью /ccreate", ParseMode.Html);
@@ -55,7 +61,7 @@ public static class SendOpenDates
             {
                 try
                 { 
-                    await botClient.EditMessageText(user.ChannelId, chat.LastDateMessageId, message, ParseMode.Html);
+                    await botClient.EditMessageText(user.ChannelId, chat.LastDateMessageId, message, ParseMode.Html, replyMarkup: buttons);
                     if (update) await botClient.SendMessage(msg.From.Id,"Календарь успешно обновлен\n" + expiredDates, ParseMode.Html);
                 } catch (Exception ex)
                 {
@@ -74,7 +80,7 @@ public static class SendOpenDates
             }
             else
             {
-                var sendMessage = await botClient.SendMessage(channel, message, ParseMode.Html);
+                var sendMessage = await botClient.SendMessage(channel, message, ParseMode.Html, replyMarkup: buttons);
                 await botClient.PinChatMessage(sendMessage.Chat.Id, sendMessage.MessageId);
                 chat.LastDateMessageId = sendMessage.MessageId;
                 await db.SaveChangesAsync();
