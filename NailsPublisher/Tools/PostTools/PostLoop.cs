@@ -40,11 +40,22 @@ public static class PostLoop
             }
             else if (post?.Step == "Description")
             {
-                post.Description = msg.Text;
-                await botClient.SendMessage(msg.Chat.Id,
-                    $"Вы установили описание поста на {msg.Text}. Напишите Цену для поста: ", ParseMode.Markdown);
-                post.Step = "Price";
-                await db.SaveChangesAsync();
+                if (msg.Text == "-")
+                {
+                    post.Description = msg.Text;
+                    await botClient.SendMessage(msg.Chat.Id,
+                        $"Пост не будет содержать описание. Напишите Цену для поста: ", ParseMode.Html);
+                    post.Step = "Price";
+                    await db.SaveChangesAsync();
+                }
+                else
+                {
+                    post.Description = msg.Text;
+                    await botClient.SendMessage(msg.Chat.Id,
+                        $"Вы установили описание поста на {msg.Text}. Напишите Цену для поста: ", ParseMode.Html);
+                    post.Step = "Price";
+                    await db.SaveChangesAsync();
+                }
             }
             else if (post?.Step == "Price")
             {
@@ -66,10 +77,18 @@ public static class PostLoop
             }
             else if (post?.Step == "Photo")
             {
-                var message =
-                    $"<blockquote><b>Описание:</b> <code>{post.Description}</code></blockquote>\n" +
-                    $"<blockquote><b>Цена:</b> <code>{post.Price}Р</code></blockquote>";
                 var channel = user.ChannelId != 0 ? user.ChannelId : msg.Chat.Id;
+                var message = String.Empty;
+                if (post.Description == "-")
+                {
+                    message = $"<blockquote><b>Цена:</b> <code>{post.Price}Р</code></blockquote>";
+                }
+                else
+                {
+                    message =
+                        $"<blockquote><b>Описание:</b> <code>{post.Description}</code></blockquote>\n" +
+                        $"<blockquote><b>Цена:</b> <code>{post.Price}Р</code></blockquote>";
+                }
                 try
                 {
                     await botClient.SendPhoto(channel, msg.Photo.Last(), message, ParseMode.Html);
