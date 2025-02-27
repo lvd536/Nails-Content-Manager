@@ -91,7 +91,19 @@ public static class PostLoop
                 }
                 try
                 {
-                    await botClient.SendPhoto(channel, msg.Photo.Last(), message, ParseMode.Html);
+                    if (msg.Type == MessageType.Photo)
+                    {
+                        await botClient.SendPhoto(channel, msg.Photo.Last(), message, ParseMode.Html);
+                    }
+                    else if (msg.Type == MessageType.Video)
+                    {
+                        await botClient.SendVideo(channel, msg.Video, message, ParseMode.Html);
+                    }
+                    else
+                    {
+                        await botClient.SendMessage(msg.From.Id, "Вы можете указать в этом пункте <b>только</b> фото или видео!", ParseMode.Html);
+                        return;
+                    }
                     await botClient.SendMessage(msg.From.Id, "Успешно отправил пост!", ParseMode.Html);
                 }
                 catch (ArgumentNullException)

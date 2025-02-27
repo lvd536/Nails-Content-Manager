@@ -30,7 +30,7 @@ async Task OnMessage(Message msg, UpdateType type)
     if (msg.Chat.Type is ChatType.Channel && !msg.Text.StartsWith("/pset")) return;
     if (msg.Text is null)
     {
-        if (msg.Type == MessageType.Photo) await PostLoop.PostLoopAsync(bot, msg);
+        if (msg.Type == MessageType.Photo || msg.Type == MessageType.Video) await PostLoop.PostLoopAsync(bot, msg);
         return;
     }
     if (!msg.Text.StartsWith('/')) await PostLoop.PostLoopAsync(bot, msg);
