@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using NailsPublisher.Database;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
  
@@ -8,7 +9,7 @@ namespace NailsPublisher.OpenDatesTools;
 
 public static class OpenDates
 {
-    public static async Task CreateOpenDatesAsync(ITelegramBotClient botClient, Message msg, string date)
+    public static async Task CreateOpenDatesAsync(ITelegramBotClient botClient, Message msg, string date, string isOpenCheck)
     {
         using (ApplicationContext db = new ApplicationContext())
         {
@@ -29,6 +30,7 @@ public static class OpenDates
             var openDate = new EntityList.OpenDate
             {
                 Date = DateTime.Parse(date),
+                IsOpen = isOpenCheck == "+"
             };
             user.OpenDates.Add(openDate);
             await db.SaveChangesAsync();
@@ -74,10 +76,9 @@ public static class OpenDates
                     continue;
                 }
                 var closedCheck = d.IsOpen ? "✅" : "❌";
-                message += $"<blockquote><b>Номер записи:</b> <i>{d.Id}</i>\n" +
-                           $"<b>Дата:</b> <code>{d.Date:dd.MM}</code></blockquote>\n" +
-                           $"<b>Время:</b> <code>{d.Date:HH:mm}</code></blockquote>\n" +
-                           $"<b>Занято:</b> <code>{closedCheck}</code></blockquote>\n";
+                message += $"<blockquote><b>Дата:</b> <code>{d.Date:dd.MM}</code>\n" +
+                           $"<b>Время:</b> <code>{d.Date:HH:mm}</code>\n" +
+                           $"<b>Занято:</b> <code>{closedCheck} </code></blockquote>\n";
             }
             
             if (chat.LastDateMessageId != 0)
@@ -86,9 +87,19 @@ public static class OpenDates
                 { 
                     await botClient.EditMessageText(user.ChannelId, chat.LastDateMessageId, message, ParseMode.Html);
                     if (update) await botClient.SendMessage(msg.From.Id,"Календарь успешно обновлен\n" + expiredDates, ParseMode.Html);
-                } catch (Exception)
+                } catch (Exception ex)
                 {
-                    await botClient.SendMessage(msg.From.Id,"Прошлое сообщение небыло найдено или не имеет изменений. Если хотите обнулить отслеживаемое сообщение, напишите: /crewrite", ParseMode.Html);
+                    if (ex.Message.Contains("message is not modified"))
+                    {
+                        await botClient.SendMessage(msg.From.Id, "Вы не добавили новых дат чтобы изменять сообщение", ParseMode.Html);
+                        return;
+                    }
+                    if (ex.Message.Contains("MESSAGE_ID_INVALID"))
+                    {
+                        await botClient.SendMessage(msg.From.Id, "Сообщение с календарем было удалено. Чтобы обнулить отслеживаемое сообщение, напишите: /crewrite", ParseMode.Html);
+                        return;
+                    }
+                    await botClient.SendMessage(msg.From.Id,"Прошлое сообщение небыло найдено. Если хотите обнулить отслеживаемое сообщение, напишите: /crewrite", ParseMode.Html);
                 }
             }
             else

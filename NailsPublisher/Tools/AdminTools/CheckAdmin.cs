@@ -2,6 +2,7 @@
 using NailsPublisher.Database;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 
 namespace NailsPublisher.AdminTools;
 
@@ -9,6 +10,7 @@ public static class CheckAdmin
 {
     public static async Task<bool> IsAdminCheckAsync(ITelegramBotClient botClient, Message msg)
     {
+        if (msg.Chat.Type == ChatType.Channel) return true;
         bool isAdmin = false;
         using (ApplicationContext db = new ApplicationContext())
         {

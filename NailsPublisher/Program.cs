@@ -36,8 +36,9 @@ async Task OnMessage(Message msg, UpdateType type)
     if (!msg.Text.StartsWith('/')) await PostCreator.PostLoopAsync(bot, msg);
     var commandParts = msg.Text.Split(' ');
     var command = commandParts[0];
-    var argument = commandParts.Length >= 2 ? commandParts[1] : null;
-    var defArgument = commandParts.Length >= 3 ? commandParts[2] : null;
+    var firstArgument = commandParts.Length >= 2 ? commandParts[1] : null;
+    var secondArgument = commandParts.Length >= 3 ? commandParts[2] : null;
+    var thirdArgument = commandParts.Length >= 4 ? commandParts[3] : null;
     
     if (msg.Text.StartsWith('/'))
     {
@@ -56,15 +57,20 @@ async Task OnMessage(Message msg, UpdateType type)
                 await PostCreator.PostListCmdAsync(bot, msg);
                 break;
             case "/ccreate":
-                if (argument is not null)
+                if (firstArgument is not null)
                 {
                     try {
-                        if (defArgument is null) defArgument = "00:00";
-                        argument += $".{DateTime.Now.Year} {defArgument}";
-                        await OpenDates.CreateOpenDatesAsync(bot, msg, argument);
+                        if (secondArgument is null) secondArgument = "00:00";
+                        if (thirdArgument != "+" && thirdArgument != "-")
+                        {
+                            await bot.SendMessage(msg.Chat.Id, "Неправильно указана комманда. Пример: /ccreate 01.01 22:40 + | /ccreate дата время свободно/занято", ParseMode.Html);
+                            break;
+                        }
+                        firstArgument += $".{DateTime.Now.Year} {secondArgument}";
+                        await OpenDates.CreateOpenDatesAsync(bot, msg, firstArgument, thirdArgument);
                     } catch (Exception)
                     {
-                        await bot.SendMessage(msg.Chat.Id, "Неправильно указана комманда. Пример: /ccreate 01.01 22:40 | /ccreate дата время", ParseMode.Html);
+                        await bot.SendMessage(msg.Chat.Id, "Неправильно указана комманда. Пример: /ccreate 01.01 22:40 + | /ccreate дата время свободно/занято", ParseMode.Html);
                     }
                 }
                 break;
@@ -72,11 +78,11 @@ async Task OnMessage(Message msg, UpdateType type)
                 await OpenDates.SendOpenDatesAsync(bot, msg, true);
                 break;
             case "/cdelete":
-                if (argument is null) await OpenDates.OpenDateDeleteCmdAsync(bot, msg, -1);
+                if (firstArgument is null) await OpenDates.OpenDateDeleteCmdAsync(bot, msg, -1);
                 else
                 {
                     try {
-                        await OpenDates.OpenDateDeleteCmdAsync(bot, msg, int.Parse(argument));
+                        await OpenDates.OpenDateDeleteCmdAsync(bot, msg, int.Parse(firstArgument));
                     } catch (Exception)
                     {
                         await bot.SendMessage(msg.Chat.Id, "Вам необходимо установить номер записи после комманды. Пример: /cdelete 5", ParseMode.Html);
@@ -90,9 +96,9 @@ async Task OnMessage(Message msg, UpdateType type)
                 await OpenDates.OpenDateListCmdAsync(bot, msg);
                 break;
             case "/makeadmin":
-                if (argument is null) return;
+                if (firstArgument is null) return;
                 try {
-                    await AddAdmin.AddAdminAsync(bot, msg, long.Parse(argument));
+                    await AddAdmin.AddAdminAsync(bot, msg, long.Parse(firstArgument));
                 } catch (Exception)
                 {
                     await bot.SendMessage(msg.Chat.Id, "Вам необходимо установить UID юзера после комманды. Пример: /makeadmin 123465789", ParseMode.Html);
