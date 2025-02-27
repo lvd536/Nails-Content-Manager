@@ -67,7 +67,7 @@ async Task OnMessage(Message msg, UpdateType type)
                             break;
                         }
                         firstArgument += $".{DateTime.Now.Year} {secondArgument}";
-                        await OpenDates.CreateOpenDatesAsync(bot, msg, firstArgument, thirdArgument);
+                        await CreateOpenDates.CreateOpenDatesAsync(bot, msg, firstArgument, thirdArgument);
                     } catch (Exception)
                     {
                         await bot.SendMessage(msg.Chat.Id, "Неправильно указана комманда. Пример: /ccreate 01.01 22:40 + | /ccreate дата время свободно/занято", ParseMode.Html);
@@ -75,14 +75,14 @@ async Task OnMessage(Message msg, UpdateType type)
                 }
                 break;
             case "/csend":
-                await OpenDates.SendOpenDatesAsync(bot, msg, true);
+                await SendOpenDates.SendOpenDatesAsync(bot, msg, true);
                 break;
             case "/cdelete":
-                if (firstArgument is null) await OpenDates.OpenDateDeleteCmdAsync(bot, msg, -1);
+                if (firstArgument is null) await OpenDateDelete.OpenDateDeleteCmdAsync(bot, msg, -1);
                 else
                 {
                     try {
-                        await OpenDates.OpenDateDeleteCmdAsync(bot, msg, int.Parse(firstArgument));
+                        await OpenDateDelete.OpenDateDeleteCmdAsync(bot, msg, int.Parse(firstArgument));
                     } catch (Exception)
                     {
                         await bot.SendMessage(msg.Chat.Id, "Вам необходимо установить номер записи после комманды. Пример: /cdelete 5", ParseMode.Html);
@@ -90,10 +90,10 @@ async Task OnMessage(Message msg, UpdateType type)
                 }
                 break;
             case "/crewrite":
-                await OpenDates.RewriteOpenDatesAsync(bot, msg);
+                await RewriteOpenDates.RewriteOpenDatesAsync(bot, msg);
                 break;
             case "/clist":
-                await OpenDates.OpenDateListCmdAsync(bot, msg);
+                await OpenDateList.OpenDateListCmdAsync(bot, msg);
                 break;
             case "/makeadmin":
                 if (firstArgument is null) return;
