@@ -73,8 +73,11 @@ public static class OpenDates
                     await db.SaveChangesAsync();
                     continue;
                 }
+                var closedCheck = d.IsOpen ? "✅" : "❌";
                 message += $"<blockquote><b>Номер записи:</b> <i>{d.Id}</i>\n" +
-                           $"<b>Дата:</b> <code>{d.Date:dd.MM HH:mm}</code></blockquote>\n";
+                           $"<b>Дата:</b> <code>{d.Date:dd.MM}</code></blockquote>\n" +
+                           $"<b>Время:</b> <code>{d.Date:HH:mm}</code></blockquote>\n" +
+                           $"<b>Занято:</b> <code>{closedCheck}</code></blockquote>\n";
             }
             
             if (chat.LastDateMessageId != 0)
