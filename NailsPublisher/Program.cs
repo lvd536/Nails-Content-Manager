@@ -30,10 +30,10 @@ async Task OnMessage(Message msg, UpdateType type)
     if (msg.Chat.Type is ChatType.Channel && !msg.Text.StartsWith("/pset")) return;
     if (msg.Text is null)
     {
-        if (msg.Type == MessageType.Photo) await PostCreator.PostLoopAsync(bot, msg);
+        if (msg.Type == MessageType.Photo) await PostLoop.PostLoopAsync(bot, msg);
         return;
     }
-    if (!msg.Text.StartsWith('/')) await PostCreator.PostLoopAsync(bot, msg);
+    if (!msg.Text.StartsWith('/')) await PostLoop.PostLoopAsync(bot, msg);
     var commandParts = msg.Text.Split(' ');
     var command = commandParts[0];
     var firstArgument = commandParts.Length >= 2 ? commandParts[1] : null;
@@ -45,16 +45,16 @@ async Task OnMessage(Message msg, UpdateType type)
         switch (command)
         {
             case "/post":
-                await PostCreator.PostCmdAsync(bot, msg);
+                await PostStart.PostCmdAsync(bot, msg);
                 break;
             case "/pcancel":
-                await PostCreator.PostCancelAsync(bot, msg);
+                await PostCancel.PostCancelAsync(bot, msg);
                 break;
             case "/pset":
-                await PostCreator.SetChannelAsync(bot, msg);
+                await PostSetChannel.SetChannelAsync(bot, msg);
                 break;
             case "/plist":
-                await PostCreator.PostListCmdAsync(bot, msg);
+                await PostList.PostListCmdAsync(bot, msg);
                 break;
             case "/ccreate":
                 if (firstArgument is not null)
