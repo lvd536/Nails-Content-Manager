@@ -14,7 +14,6 @@ var bot = new TelegramBotClient("7371147310:AAEwln2CDIWVzYNTFHMdUwbzyzHod1qgDDQ"
 var me = await bot.GetMe();
 
 bot.OnMessage += OnMessage;
-bot.OnUpdate += OnCallbackQuery;
 bot.OnError += OnError;
 
 Console.WriteLine($"@{me.Username} is running... Press Enter to terminate");
@@ -111,14 +110,6 @@ async Task OnMessage(Message msg, UpdateType type)
                 await HelpCommand.HelpCommandAsync(bot, msg);
                 break;
         }
-    }
-}
-
-async Task OnCallbackQuery(Update update)
-{
-    if (update.Type != UpdateType.CallbackQuery) return;
-    switch (update.CallbackQuery?.Data)
-    {
     }
 }
 
