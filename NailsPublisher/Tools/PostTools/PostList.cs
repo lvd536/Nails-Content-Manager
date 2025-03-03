@@ -16,6 +16,7 @@ public static class PostList
             var post = user?.Posts.LastOrDefault();
             var message = "Список ваших постов:\n";
             var postList = user.Posts.ToList();
+            var totalPrice = 0;
             
             if (post?.Step != "Finally")
             {
@@ -35,7 +36,10 @@ public static class PostList
                            $"<b>Описание поста:</b> <code>{p.Description}</code>\n" +
                            $"<b>Цена:</b> <code>{p.Price}</code>\n" +
                            $"<b>Дата создания:</b> <code>{p.Date}</code></blockquote>\n";
+                totalPrice += p.Price;
             }
+            message += $"\n<blockquote><b>Общая прибыль:</b> <code>{totalPrice}</code>\n" +
+                       $"<b>Кол-во постов:</b> <code>{user.Posts.Count}</code></blockquote>";
             await botClient.SendMessage(msg.Chat.Id, message, ParseMode.Html);
         }
     }
