@@ -14,20 +14,8 @@ public static class SendOpenDates
     {
         using (ApplicationContext db = new ApplicationContext())
         {
-            var chat = db.Chats
-                .Include(u => u.Users)
-                .ThenInclude(u => u.OpenDates)
-                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            if (chat is null || user is null)
-            {
-                await DbMethods.InitializeDbAsync(msg);
-                chat = db.Chats
-                    .Include(u => u.Users)
-                    .ThenInclude(u => u.OpenDates)
-                    .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-                user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            }
+            var chat = await DbMethods.GetChatByMessageAsync(db, msg);
+            var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
             var channel = user.ChannelId != 0 ? user.ChannelId : msg.Chat.Id;
             var message = "Owww nails౨ৎ\n" +
                           "Записи:\n";

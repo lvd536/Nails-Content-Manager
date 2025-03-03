@@ -18,21 +18,10 @@ public static class OpenDateDelete
         }
         using (ApplicationContext db = new ApplicationContext())
         {
-            var chat = db.Chats
-                .Include(u => u.Users)
-                .ThenInclude(u => u.OpenDates)
-                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
+            var chat = await DbMethods.GetChatByMessageAsync(db, msg);
+            var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
             var datesList = user?.OpenDates.ToList();
-            if (chat is null || user is null)
-            {
-                await DbMethods.InitializeDbAsync(msg);
-                chat = db.Chats
-                    .Include(u => u.Users)
-                    .ThenInclude(u => u.OpenDates)
-                    .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-                user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            }
+
             if (user.OpenDates.Count <= 0)
             {
                 await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Создайте хотябы 1 запись с помощью /ccreate", ParseMode.Html);

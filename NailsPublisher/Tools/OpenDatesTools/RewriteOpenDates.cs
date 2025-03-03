@@ -12,18 +12,7 @@ public static class RewriteOpenDates
     {
         using (ApplicationContext db = new ApplicationContext())
         {
-            var chat = db.Chats
-                .Include(u => u.Users)
-                .ThenInclude(u => u.OpenDates)
-                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-            if (chat is null)
-            {
-                await DbMethods.InitializeDbAsync(msg);
-                chat = db.Chats
-                    .Include(u => u.Users)
-                    .ThenInclude(u => u.OpenDates)
-                    .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-            }
+            var chat = await DbMethods.GetChatByMessageAsync(db, msg);
             if (chat.LastDateMessageId == 0) await botClient.SendMessage(msg.From.Id,"У вас не установлено отслеживаемое сообщение. Чтобы установить его необходимо 1 раз отправить сообщение в канал: /pset в канале, /csend после этого", ParseMode.Html);
             else
             {

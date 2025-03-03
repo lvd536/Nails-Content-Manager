@@ -11,14 +11,9 @@ public static class PostStart
     {
         using (ApplicationContext db = new ApplicationContext())
         {
-            var chat = db.Chats
-                .Include(u => u.Users)
-                .ThenInclude(u => u.Posts)
-                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            var post = user?.Posts.LastOrDefault();
-
-            if (chat is null || user is null) await DbMethods.InitializeDbAsync(msg);
+            var chat = await DbMethods.GetChatByMessageAsync(db, msg);
+            var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
+            var post = user.Posts.LastOrDefault();
 
             if (post?.Step == "Finally" || user?.Posts.Count < 1)
             {

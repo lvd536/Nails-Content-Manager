@@ -12,21 +12,9 @@ public static class AddAdmin
     {
         using (ApplicationContext db = new ApplicationContext())
         {
-            var chat = db.Chats
-                .Include(u => u.Users)
-                .FirstOrDefault(u => u.ChatId == targetUid);
-            var user = chat?.Users.FirstOrDefault(u => u.UserId == targetUid);
-            if (chat is null || user is null)
-            {
-                await DbMethods.InitializeDbAsync(msg);
-                chat = db.Chats
-                    .Include(u => u.Users)
-                    .FirstOrDefault(u => u.ChatId == targetUid);
-                user = chat?.Users.FirstOrDefault(u => u.UserId == targetUid);
-            }
+            var user = await DbMethods.SearchUserByChatAsync(db, botClient, msg, targetUid);
             if (msg.From.Id != 1016623551) return;
-            if (user is null) await botClient.SendMessage(msg.From.Id, "Такого пользователя нет в базе данных", ParseMode.Html);
-            else
+            if(user.UserId == targetUid)
             {
                 user.IsAdmin = true;
                 await db.SaveChangesAsync();

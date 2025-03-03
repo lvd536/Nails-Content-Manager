@@ -11,30 +11,16 @@ public static class PostLoop
     {
         using (ApplicationContext db = new ApplicationContext())
         {
-            var chat = db.Chats
-                .Include(u => u.Users)
-                .ThenInclude(u => u.Posts)
-                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            var post = user?.Posts.LastOrDefault();
-
-            if (chat is null || user is null)
-            {
-                await DbMethods.InitializeDbAsync(msg);
-                chat = db.Chats
-                    .Include(u => u.Users)
-                    .ThenInclude(u => u.Posts)
-                    .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-                user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-                post = user?.Posts.LastOrDefault();
-            }
+            var chat = await DbMethods.GetChatByMessageAsync(db, msg);
+            var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
+            var post = user.Posts.LastOrDefault();
 
             if (post?.Step == "Finally") return;
 
             if (post?.Step == "Start")
             {
                 await botClient.SendMessage(msg.Chat.Id,
-                    $"Установите описание для поста: ", ParseMode.Markdown);
+                    $"Установите описание для поста: ", ParseMode.Html);
                 post.Step = "Description";
                 await db.SaveChangesAsync();
             }
@@ -71,7 +57,7 @@ public static class PostLoop
                 }
 
                 await botClient.SendMessage(msg.Chat.Id,
-                    $"Вы установили цену поста на {msg.Text}. Отправьте Фото или Видео для поста: ", ParseMode.Markdown);
+                    $"Вы установили цену поста на {msg.Text}. Отправьте Фото или Видео для поста: ", ParseMode.Html);
                 post.Step = "Photo";
                 await db.SaveChangesAsync();
             }

@@ -11,17 +11,14 @@ public static class PostCancel
     {
         using (ApplicationContext db = new ApplicationContext())
         {
-            var chat = db.Chats
-                .Include(u => u.Users)
-                .ThenInclude(u => u.Posts)
-                .FirstOrDefault(u => u.ChatId == msg.Chat.Id);
-            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            var post = user?.Posts.LastOrDefault();
-
-            if (chat is null || user is null) await DbMethods.InitializeDbAsync(msg);
-
-            if (post.Step == "Finally")
+            var chat = await DbMethods.GetChatByMessageAsync(db, msg);
+            var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
+            var post = user.Posts.LastOrDefault();
+            if (post == null) await PostStart.PostCmdAsync(botClient, msg);
+            if (post?.Step == "Finally")
+            {
                 await botClient.SendMessage(msg.Chat.Id, "У вас нет активных форм создания постов", ParseMode.Html);
+            }
             else
             {
                 post.Step = "Finally";

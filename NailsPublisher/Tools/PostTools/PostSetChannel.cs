@@ -11,20 +11,8 @@ public static class PostSetChannel
     {
         using (ApplicationContext db = new ApplicationContext())
         {
-            var chat = db.Chats
-                .Include(u => u.Users)
-                .ThenInclude(u => u.Posts)
-                .FirstOrDefault(u => u.ChatId == msg.From.Id);
-            var user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            if (user is null)
-            {
-                await DbMethods.InitializeDbAsync(msg);
-                chat = db.Chats
-                    .Include(u => u.Users)
-                    .ThenInclude(u => u.Posts)
-                    .FirstOrDefault(u => u.ChatId == msg.From.Id);
-                user = chat?.Users.FirstOrDefault(u => u.UserId == msg.From?.Id);
-            }
+            var chat = await DbMethods.GetChatByMessageAsync(db, msg);
+            var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
 
             if (msg.Chat.Type == ChatType.Channel)
             {

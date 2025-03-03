@@ -10,7 +10,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 using var cts = new CancellationTokenSource();
-var bot = new TelegramBotClient("token", cancellationToken: cts.Token);
+var bot = new TelegramBotClient("7943623939:AAEUAhQHU8rdxQEsEk9HeEfkXwyR_X5PgLI", cancellationToken: cts.Token);
 var me = await bot.GetMe();
 
 bot.OnMessage += OnMessage;
@@ -26,12 +26,12 @@ async Task OnMessage(Message msg, UpdateType type)
         await bot.SendMessage(msg.Chat.Id, "<b>Использовать бота может ТОЛЬКО ограниченный круг лиц!</b>", ParseMode.Html);
         return;
     }
-    if (msg.Chat.Type is ChatType.Channel && !msg.Text.StartsWith("/pset")) return;
     if (msg.Text is null)
     {
         if (msg.Type == MessageType.Photo || msg.Type == MessageType.Video) await PostLoop.PostLoopAsync(bot, msg);
         return;
     }
+    if (msg.Chat.Type is ChatType.Channel && !msg.Text.StartsWith("/pset")) return;
     if (!msg.Text.StartsWith('/')) await PostLoop.PostLoopAsync(bot, msg);
     var commandParts = msg.Text.Split(' ');
     var command = commandParts[0];
