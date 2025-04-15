@@ -1,14 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using NailsPublisher.Database;
+﻿using NailsPublisher.Database;
 using Telegram.Bot;
-using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 namespace NailsPublisher.OpenDatesTools;
 
 public static class OpenDateDelete
 {
-        public static async Task OpenDateDeleteCmdAsync(ITelegramBotClient botClient, Message msg, int id)
+    public static async Task OpenDateDeleteCmdAsync(ITelegramBotClient botClient, Message msg, int id)
     {
         if (id == -1)
         {

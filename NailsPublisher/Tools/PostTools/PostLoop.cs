@@ -3,6 +3,7 @@ using NailsPublisher.Database;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace NailsPublisher.PostTools;
 
@@ -15,7 +16,8 @@ public static class PostLoop
             var chat = await DbMethods.GetChatByMessageAsync(db, msg);
             var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
             var post = user.Posts.LastOrDefault();
-
+            var button = new InlineKeyboardMarkup().AddButton(InlineKeyboardButton.WithUrl("Записаться",
+                    "https://t.me/oliweeshka"));
             if (post?.Step == "Finally") return;
 
             switch (post?.Step)
@@ -88,11 +90,11 @@ public static class PostLoop
                     {
                         if (msg.Type == MessageType.Photo)
                         {
-                            await botClient.SendPhoto(channel, msg.Photo.Last(), message, ParseMode.Html);
+                            await botClient.SendPhoto(channel, msg.Photo.Last(), message, ParseMode.Html, replyMarkup: button);
                         }
                         else if (msg.Type == MessageType.Video)
                         {
-                            await botClient.SendVideo(channel, msg.Video, message, ParseMode.Html);
+                            await botClient.SendVideo(channel, msg.Video, message, ParseMode.Html, replyMarkup: button);
                         }
                         else
                         {
@@ -106,7 +108,7 @@ public static class PostLoop
                     catch (ArgumentNullException)
                     {
                         await botClient.SendMessage(msg.From.Id,
-                            "Вам необходимо отправить фото. Другие виды медиа не принимаются", ParseMode.Html);
+                            "Вам необходимо отправить фото или видео. Другие виды медиа не принимаются", ParseMode.Html);
                         return;
                     }
 

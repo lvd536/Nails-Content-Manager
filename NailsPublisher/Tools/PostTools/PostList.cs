@@ -7,7 +7,7 @@ namespace NailsPublisher.PostTools;
 
 public static class PostList
 {
-        public static async Task PostListCmdAsync(ITelegramBotClient botClient, Message msg)
+    public static async Task PostListCmdAsync(ITelegramBotClient botClient, Message msg)
     {
         using (ApplicationContext db = new ApplicationContext())
         {

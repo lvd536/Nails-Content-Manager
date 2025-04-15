@@ -55,6 +55,13 @@ async Task OnMessage(Message msg, UpdateType type)
             case "/plist":
                 await PostList.PostListCmdAsync(bot, msg);
                 break;
+            case "/pdelete":
+                if (short.TryParse(firstArgument, out short shortValue))
+                {
+                    await PostDelete.PostDeleteCmdAsync(bot, msg, shortValue);
+                }
+                else await bot.SendMessage(msg.Chat.Id, "Вы неверно указали номер поста. Пример: /pdelete 5 | /pdelete №поста", ParseMode.Html);
+                break;
             case "/ccreate":
                 if (firstArgument is not null)
                 {
@@ -115,6 +122,6 @@ async Task OnMessage(Message msg, UpdateType type)
 
 async Task OnError(Exception exception, HandleErrorSource handler)
 {
-    Console.WriteLine(exception);
+    Console.WriteLine(exception.Message);
     await Task.Delay(2000, cts.Token);
 }
