@@ -20,6 +20,7 @@ public class EntityList
         public Chat Chat { get; set; } = null!;
         public List<Post> Posts { get; set; } = new List<Post>();
         public List<OpenDate> OpenDates { get; set; } = new List<OpenDate>();
+        public List<Product> Products { get; set; } = new List<Product>();
     }
     public class Post
     {
@@ -36,8 +37,19 @@ public class EntityList
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public DateTime Date { get; set; }
         public bool IsOpen { get; set; }
+        public User User { get; set; } = null!;
+        public DateTime Date { get; set; }
+    }
+    
+    public class Product
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public int Price { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public bool IsPurchased;
         public User User { get; set; } = null!;
     }
 }

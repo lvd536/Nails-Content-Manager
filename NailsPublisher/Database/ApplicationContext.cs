@@ -34,7 +34,12 @@ public class ApplicationContext : DbContext
         
         modelBuilder.Entity<EntityList.User>()
             .HasMany(p => p.Posts)
-            .WithOne(U => U.User)
+            .WithOne(u => u.User)
+            .HasForeignKey(i => i.UserId);
+        
+        modelBuilder.Entity<EntityList.User>()
+            .HasMany(p => p.Products)
+            .WithOne(u => u.User)
             .HasForeignKey(i => i.UserId);
         
         modelBuilder.Entity<EntityList.Post>()
@@ -42,7 +47,7 @@ public class ApplicationContext : DbContext
         
         modelBuilder.Entity<EntityList.User>()
             .HasMany(p => p.OpenDates)
-            .WithOne(U => U.User)
+            .WithOne(u => u.User)
             .HasForeignKey(i => i.UserId);
         
         modelBuilder.Entity<EntityList.OpenDate>()

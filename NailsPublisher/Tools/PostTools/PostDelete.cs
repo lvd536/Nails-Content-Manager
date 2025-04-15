@@ -13,17 +13,7 @@ public static class PostDelete
         {
             var chat = await DbMethods.GetChatByMessageAsync(db, msg);
             var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
-            var postStep = user.Posts.LastOrDefault()?.Step;
 
-            if (postStep != "Finally")
-            {
-                await botClient.SendMessage(msg.Chat.Id,
-                    "У вас есть незаконченная форма создания поста. Напишите /pcancel чтобы остановить создание поста",
-                    ParseMode.Html);
-                await PostLoop.PostLoopAsync(botClient, msg);
-                return;
-            }
-            
             if (user.Posts.Any(p => p.Id == postId))
             {
                 var targetPost = user.Posts.FirstOrDefault(p => p.Id == postId);
