@@ -6,7 +6,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace NailsPublisher.Tools.PersonalTools;
 
-public static class ShopperList
+public static class ProductList
 {
     public static async void ShopperListCmdAsync(ITelegramBotClient botClient, Message msg)
     {
