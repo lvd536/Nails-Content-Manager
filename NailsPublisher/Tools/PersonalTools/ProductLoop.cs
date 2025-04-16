@@ -1,41 +1,12 @@
 ﻿using NailsPublisher.Database;
-using NailsPublisher.PostTools;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace NailsPublisher.Tools.PersonalTools;
 
-public class ProductCreation
+public static class ProductLoop
 {
-    public static async Task ShopperCmdAsync(ITelegramBotClient botClient, Message msg)
-    {
-        using (ApplicationContext db = new ApplicationContext())
-        {
-            var chat = await DbMethods.GetChatByMessageAsync(db, msg);
-            var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
-            var product = user.Products.LastOrDefault();
-
-            if (product?.Step == 5 || user?.Products.Count < 1)
-            {
-                EntityList.Product newProduct = new EntityList.Product
-                {
-                    Step = 0,
-                    Name = string.Empty,
-                    Description = string.Empty,
-                    Price = 0,
-                    IsPurchased = false,
-                    User = user
-                };
-                user.Products.Add(newProduct);
-                await db.SaveChangesAsync();
-
-                await ProductLoopAsync(botClient, msg);
-            }
-        }
-    }
-
     public static async Task ProductLoopAsync(ITelegramBotClient botClient, Message msg)
     {
         using (ApplicationContext db = new ApplicationContext())
@@ -108,11 +79,11 @@ public class ProductCreation
                     product.IsPurchased = msg.Text == "+";
                     string purchaseStatus = product.IsPurchased ? "Куплен" : "Не куплен";
                     var message = $"<blockquote><b>Товар №:</b> <i>{product.Id}</i>\n" +
-                                  $"<b>Название:</b> <code>{product.Description}</code>\n" +
+                                  $"<b>Название:</b> <code>{product.Name}</code>\n" +
                                   $"<b>Описание:</b> <code>{product.Description}</code>\n" +
                                   $"<b>Цена:</b> <code>{product.Price}</code>\n" +
                                   $"<b>Статус покупки:</b> <code>{purchaseStatus}</code></blockquote>\n";
-                    await botClient.SendMessage(msg.From.Id, $"Вы успешно создали товар!", ParseMode.Html);
+                    await botClient.SendMessage(msg.From.Id, $"Вы успешно создали товар!\n" + message, ParseMode.Html);
                     product.Step = 5;
                     await db.SaveChangesAsync();
                     break;

@@ -15,7 +15,7 @@ public static class PostStart
             var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
             var post = user.Posts.LastOrDefault();
 
-            if (post?.Step == "Finally" || user?.Posts.Count < 1)
+            if (post?.Step == "Finally" || user.Posts.Count < 1)
             {
                 EntityList.Post newPost = new EntityList.Post
                 {
@@ -27,9 +27,8 @@ public static class PostStart
                 };
                 user.Posts.Add(newPost);
                 await db.SaveChangesAsync();
-
-                await PostLoop.PostLoopAsync(botClient, msg);
             }
         }
+        await PostLoop.PostLoopAsync(botClient, msg);
     }
 }

@@ -46,11 +46,11 @@ public class EntityList
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public int Price { get; set; }
+        public int Price { get; set; } = 0;
         public int Step { get; set; } = 5;
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public bool IsPurchased;
+        public string Name { get; set; } = String.Empty;
+        public string Description { get; set; } = String.Empty;
+        public bool IsPurchased { get; set; }
         public User User { get; set; } = null!;
     }
 }

@@ -49,6 +49,8 @@ public static class DbMethods
                 .ThenInclude(u => u.OpenDates)
                 .Include(u => u.Users)
                 .ThenInclude(p => p.Posts)
+                .Include(u => u.Users)
+                .ThenInclude(p => p.Products)
                 .FirstOrDefaultAsync(u => u.ChatId == msg.From.Id);
             if (chat is null)
             {
@@ -58,6 +60,8 @@ public static class DbMethods
                     .ThenInclude(u => u.OpenDates)
                     .Include(u => u.Users)
                     .ThenInclude(p => p.Posts)
+                    .Include(u => u.Users)
+                    .ThenInclude(p => p.Products)
                     .FirstOrDefaultAsync(u => u.ChatId == msg.From.Id);
             }
             return chat;

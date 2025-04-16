@@ -37,11 +37,6 @@ public class ApplicationContext : DbContext
             .WithOne(u => u.User)
             .HasForeignKey(i => i.UserId);
         
-        modelBuilder.Entity<EntityList.User>()
-            .HasMany(p => p.Products)
-            .WithOne(u => u.User)
-            .HasForeignKey(i => i.UserId);
-        
         modelBuilder.Entity<EntityList.Post>()
             .HasIndex(i => i.UserId);
         
@@ -51,6 +46,14 @@ public class ApplicationContext : DbContext
             .HasForeignKey(i => i.UserId);
         
         modelBuilder.Entity<EntityList.OpenDate>()
+            .HasIndex(i => i.UserId);
+        
+        modelBuilder.Entity<EntityList.User>()
+            .HasMany(p => p.Products)
+            .WithOne(u => u.User)
+            .HasForeignKey(i => i.UserId);
+        
+        modelBuilder.Entity<EntityList.Product>()
             .HasIndex(i => i.UserId);
     }
 }

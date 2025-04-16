@@ -4,6 +4,7 @@ using NailsPublisher.Database;
 using NailsPublisher.OpenDatesTools;
 using NailsPublisher.PostTools;
 using NailsPublisher.Tools;
+using NailsPublisher.Tools.PersonalTools;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
@@ -28,11 +29,18 @@ async Task OnMessage(Message msg, UpdateType type)
     }
     if (msg.Text is null)
     {
-        if (msg.Type == MessageType.Photo || msg.Type == MessageType.Video) await PostLoop.PostLoopAsync(bot, msg);
+        if (msg.Type == MessageType.Photo || msg.Type == MessageType.Video)
+        {
+            await PostLoop.PostLoopAsync(bot, msg);
+        }
         return;
     }
     if (msg.Chat.Type is ChatType.Channel && !msg.Text.StartsWith("/pset")) return;
-    if (!msg.Text.StartsWith('/')) await PostLoop.PostLoopAsync(bot, msg);
+    if (!msg.Text.StartsWith('/'))
+    {
+        await PostLoop.PostLoopAsync(bot, msg);
+        await ProductLoop.ProductLoopAsync(bot, msg);
+    }
     var commandParts = msg.Text.Split(' ');
     var command = commandParts[0];
     var firstArgument = commandParts.Length >= 2 ? commandParts[1] : null;
@@ -43,6 +51,12 @@ async Task OnMessage(Message msg, UpdateType type)
     {
         switch (command)
         {
+            case "/product":
+                await ProductStart.ProductCmdAsync(bot, msg);
+                break;
+            case "/shopper":
+                await ProductList.ShopperListCmdAsync(bot, msg);
+                break;
             case "/post":
                 await PostStart.PostCmdAsync(bot, msg);
                 break;

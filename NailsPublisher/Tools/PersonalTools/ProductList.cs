@@ -8,7 +8,7 @@ namespace NailsPublisher.Tools.PersonalTools;
 
 public static class ProductList
 {
-    public static async void ShopperListCmdAsync(ITelegramBotClient botClient, Message msg)
+    public static async Task ShopperListCmdAsync(ITelegramBotClient botClient, Message msg)
     {
         using (ApplicationContext db = new ApplicationContext())
         {
@@ -22,15 +22,15 @@ public static class ProductList
             {
                 string purchaseStatus = p.IsPurchased ? "Куплен" : "Не куплен";
                 message += $"<blockquote><b>Товар №:</b> <i>{p.Id}</i>\n" +
-                           $"<b>Название:</b> <code>{p.Description}</code>\n" +
+                           $"<b>Название:</b> <code>{p.Name}</code>\n" +
                            $"<b>Описание:</b> <code>{p.Description}</code>\n" +
                            $"<b>Цена:</b> <code>{p.Price}</code>\n" +
                            $"<b>Статус покупки:</b> <code>{purchaseStatus}</code></blockquote>\n";
                 if (p.IsPurchased) totalPrice += p.Price;
             }
             message += $"\n<blockquote><b>Общие затраты:</b> <code>{totalPrice}</code>\n" +
-                       $"<b>Кол-во товаров:</b> <code>{user.Products.Count}</code>" +
-                       "<i>Для просмотра подробной статистики по затратам - /smetrics</i>/blockquote>";
+                       $"<b>Кол-во товаров:</b> <code>{user.Products.Count}</code>\n" +
+                       "<i>Для просмотра подробной статистики по затратам - /smetrics</i></blockquote>";
             
             await botClient.SendMessage(msg.Chat.Id, message, ParseMode.Html);
         }
