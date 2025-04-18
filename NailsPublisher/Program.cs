@@ -4,6 +4,7 @@ using NailsPublisher.Database;
 using NailsPublisher.OpenDatesTools;
 using NailsPublisher.PostTools;
 using NailsPublisher.Tools;
+using NailsPublisher.Tools.Metrics;
 using NailsPublisher.Tools.PersonalTools;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
@@ -75,6 +76,16 @@ async Task OnMessage(Message msg, UpdateType type)
                     await PostDelete.PostDeleteCmdAsync(bot, msg, shortValue);
                 }
                 else await bot.SendMessage(msg.Chat.Id, "Вы неверно указали номер поста. Пример: /pdelete 5 | /pdelete №поста", ParseMode.Html);
+                break;
+            case "/mprofit":
+                if (int.TryParse(firstArgument, out int profitPeriod))
+                {
+                    await MetricsCommand.ProfitAsync(bot, msg, profitPeriod);
+                }
+                else await bot.SendMessage(msg.Chat.Id, "Вы неверно указали знчение. Пример: /mprofit 5 | /mprofit промежуток (промежуток 0 = за все время)", ParseMode.Html);
+                break;
+            case "/mexpense":
+                await MetricsCommand.ExpensesAsync(bot, msg);
                 break;
             case "/ccreate":
                 if (firstArgument is not null)
