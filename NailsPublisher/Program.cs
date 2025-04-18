@@ -90,6 +90,9 @@ async Task OnMessage(Message msg, UpdateType type)
             case "/mproducts":
                 await MetricsCommand.ProductsAsync(bot, msg);
                 break;
+            case "/morders":
+                await MetricsCommand.OrdersAsync(bot, msg);
+                break;
             case "/ccreate":
                 if (firstArgument is not null)
                 {

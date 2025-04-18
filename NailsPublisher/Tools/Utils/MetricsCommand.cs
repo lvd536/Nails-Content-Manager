@@ -82,14 +82,7 @@ public static class MetricsCommand
     public static async Task ProductsAsync(ITelegramBotClient botClient, Message msg) // аналитика товаров
     {
         /*
-         * Всего купленных товаров +
-         * Всего не купленных товаров +
-         * Коэф купленных на некупленные +
-         * Средняя цена купленных товаров +
-         * Средняя цена не купленных товаров +
-         * Средняя стоимость товаров в общем +
-         * Соотношение цены купленных и некупленных товаров к заработку с постов +
-         * Калькуляция кол-ва времени, которое понадобится для покупки всех некупленных товаров
+         * TODO: Калькуляция кол-ва времени, которое понадобится для покупки всех некупленных товаров
         */
         using (ApplicationContext db = new ApplicationContext())
         {
@@ -115,9 +108,9 @@ public static class MetricsCommand
                 $"<code> Ср.Цена: </code> <b>{unPurchasedAvg}₽</b></blockquote>\n" +
                 $"<blockquote> <i>Общая аналитика</i>\n" +
                 $"<code> Ср.Цена всех тваров: </code> <b>{allProductsAvg}</b>\n" +
-                $"<code> Соотношение цены всех товаров к заработку с постов: </code> <b>{postsEarnings}/{productsEarnings}</b>\n" +
-                $"<code> Соотношение цены купленных товаров к заработку с постов: </code> <b>{postsEarnings}/{purchasedProducts.Sum(p => p.Price)}</b>\n" +
-                $"<code> Соотношение цены некупленных товаров к заработку с постов: </code> <b>{postsEarnings}/{unPurchasedProducts.Sum(p => p.Price)}</b>\n" +
+                $"<code> Соотношение цены всех товаров к заработку с постов: </code> <b>{productsEarnings}/{postsEarnings}</b>\n" +
+                $"<code> Соотношение цены купленных товаров к заработку с постов: </code> <b>{purchasedProducts.Sum(p => p.Price)}/{postsEarnings}</b>\n" +
+                $"<code> Соотношение цены некупленных товаров к заработку с постов: </code> <b>{unPurchasedProducts.Sum(p => p.Price)}/{postsEarnings}</b>\n" +
                 $"<code> Коэфф купленных на некупленные товары: </code> <b>{purchasedUnPurchasedCoefficient}</b></blockquote>\n";
             
             await botClient.SendMessage(msg.Chat.Id, message, ParseMode.Html);
@@ -126,16 +119,33 @@ public static class MetricsCommand
 
     public static async Task OrdersAsync(ITelegramBotClient botClient, Message msg) // статистика по заказам
     {
-        /*
-         * Всего постов + цена постов за все время
-         * Постов + цена постов за месяц
-         * Постов + цена постов за неделю
-         * Соотношение общей прибыли с постов к расходам на купленные продукты
-         */
         using (ApplicationContext db = new ApplicationContext())
         {
             var chat = await DbMethods.GetChatByMessageAsync(db, msg);
             var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
+            var posts = user.Posts.ToList();
+            var products = user.Products.ToList();
+            var allPostsEarnings = posts.Sum(p => p.Price);
+            var monthlyPostsEarnings = posts.Where(p => p.Date >= DateTime.Now.AddMonths(-1));
+            var weeklyPostsEarnings = posts.Where(p => p.Date >= DateTime.Now.AddDays(-7));
+            var avgPostsEarningsToPurchasedProducts = allPostsEarnings - products.Where(p => p.IsPurchased).Sum(p => p.Price);
+            var status = avgPostsEarningsToPurchasedProducts < 0 ? "В минусе" : "В плюсе";
+
+            var message =
+                $"<b>Аналитика постов</b>\n" +
+                $"<blockquote> <i>За все время</i>\n" +
+                $"<code> Всего постов: </code> <b>{posts.Count()}</b>\n" +
+                $"<code> Общ.прибыль: </code> <b>{allPostsEarnings}₽</b>\n" +
+                $"<code> Соотношение общ. прибыли с постов к расходам на купленные товары: </code> <b>{avgPostsEarningsToPurchasedProducts}₽</b>\n" +
+                $"<code> Статус: </code> <b>{status}</b> </blockquote>\n" +
+                $"<blockquote> <i>За месяц</i>\n" +
+                $"<code> Всего постов за мес.: </code> <b>{monthlyPostsEarnings.Count()}</b>\n" +
+                $"<code> Общ.прибыль за мес.: </code> <b>{monthlyPostsEarnings.Sum(p => p.Price)}₽</b></blockquote>\n" +
+                $"<blockquote> <i>За неделю</i>\n" +
+                $"<code> Всего постов за нед.: </code> <b>{weeklyPostsEarnings.Count()}</b>\n" +
+                $"<code> Общ.прибыль за нед.: </code> <b>{weeklyPostsEarnings.Sum(p => p.Price)}₽</b></blockquote>\n";
+            
+            await botClient.SendMessage(msg.Chat.Id, message, ParseMode.Html);
         }
     }
     
