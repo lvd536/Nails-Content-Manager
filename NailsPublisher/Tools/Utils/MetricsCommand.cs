@@ -57,27 +57,12 @@ public static class MetricsCommand
             var chat = await DbMethods.GetChatByMessageAsync(db, msg);
             var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
             var products = user.Products.ToList();
-            var purchasedExpense = 0;
-            var unPurchasedExpense = 0;
-            var purchased = 0;
-            var unPurchased = 0;
-            var message = string.Empty;
-            foreach (var p in products)
-            {
-                if (p.IsPurchased)
-                {
-                    purchasedExpense += p.Price;
-                    purchased++;
-                }
-                else
-                {
-                    unPurchasedExpense += p.Price;
-                    unPurchased++;
-                }
-            }
+            var purchased = products.Count(p => p.IsPurchased);
+            var unPurchased = products.Count(p => !p.IsPurchased);
+            var purchasedExpense = products.Where(p => p.IsPurchased).Sum(p => p.Price);
+            var unPurchasedExpense = products.Where(p => !p.IsPurchased).Sum(p => p.Price);
 
-
-            message =
+            var message =
                 $"<b>Статистика по расходам</b>\n" +
                 $"<blockquote> <i>Купленные</i>\n" +
                 $"<code> Всего тваров: </code> <b>{purchased}</b>\n" +
@@ -96,15 +81,57 @@ public static class MetricsCommand
 
     public static async Task ProductsAsync(ITelegramBotClient botClient, Message msg) // аналитика товаров
     {
+        /*
+         * Всего купленных товаров +
+         * Всего не купленных товаров +
+         * Коэф купленных на некупленные +
+         * Средняя цена купленных товаров +
+         * Средняя цена не купленных товаров +
+         * Средняя стоимость товаров в общем +
+         * Соотношение цены купленных и некупленных товаров к заработку с постов +
+         * Калькуляция кол-ва времени, которое понадобится для покупки всех некупленных товаров
+        */
         using (ApplicationContext db = new ApplicationContext())
         {
             var chat = await DbMethods.GetChatByMessageAsync(db, msg);
             var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
+            var products = user.Products.ToList();
+            var postsEarnings = user.Posts.ToList().Sum(p => p.Price);
+            var productsEarnings = products.Sum(p => p.Price);
+            var purchasedProducts = products.Where(p => p.IsPurchased);
+            var unPurchasedProducts = products.Where(p => !p.IsPurchased);
+            var purchasedUnPurchasedCoefficient = purchasedProducts.Count() / unPurchasedProducts.Count();
+            var purchasedAvg = purchasedProducts.Average(p => p.Price);
+            var unPurchasedAvg = unPurchasedProducts.Average(p => p.Price);
+            var allProductsAvg = purchasedAvg + unPurchasedAvg;
+            
+            var message =
+                $"<b>Аналитика товаров</b>\n" +
+                $"<blockquote> <i>Купленные</i>\n" +
+                $"<code> Всего тваров: </code> <b>{purchasedProducts.Count()}</b>\n" +
+                $"<code> Ср.Цена: </code> <b>{purchasedAvg}₽</b> </blockquote>\n" +
+                $"<blockquote> <i>Некупленные</i>\n" +
+                $"<code> Всего тваров: </code> <b>{unPurchasedProducts.Count()}</b>\n" +
+                $"<code> Ср.Цена: </code> <b>{unPurchasedAvg}₽</b></blockquote>\n" +
+                $"<blockquote> <i>Общая аналитика</i>\n" +
+                $"<code> Ср.Цена всех тваров: </code> <b>{allProductsAvg}</b>\n" +
+                $"<code> Соотношение цены всех товаров к заработку с постов: </code> <b>{postsEarnings}/{productsEarnings}</b>\n" +
+                $"<code> Соотношение цены купленных товаров к заработку с постов: </code> <b>{postsEarnings}/{purchasedProducts.Sum(p => p.Price)}</b>\n" +
+                $"<code> Соотношение цены некупленных товаров к заработку с постов: </code> <b>{postsEarnings}/{unPurchasedProducts.Sum(p => p.Price)}</b>\n" +
+                $"<code> Коэфф купленных на некупленные товары: </code> <b>{purchasedUnPurchasedCoefficient}</b></blockquote>\n";
+            
+            await botClient.SendMessage(msg.Chat.Id, message, ParseMode.Html);
         }
     }
 
     public static async Task OrdersAsync(ITelegramBotClient botClient, Message msg) // статистика по заказам
     {
+        /*
+         * Всего постов + цена постов за все время
+         * Постов + цена постов за месяц
+         * Постов + цена постов за неделю
+         * Соотношение общей прибыли с постов к расходам на купленные продукты
+         */
         using (ApplicationContext db = new ApplicationContext())
         {
             var chat = await DbMethods.GetChatByMessageAsync(db, msg);
@@ -113,6 +140,9 @@ public static class MetricsCommand
     }
     
     public static async Task SummaryAsync(ITelegramBotClient botClient, Message msg) // общая сводка
+        /*
+         * 
+         */
     {
         using (ApplicationContext db = new ApplicationContext())
         {
