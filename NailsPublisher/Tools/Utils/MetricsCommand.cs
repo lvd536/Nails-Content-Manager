@@ -14,22 +14,9 @@ public static class MetricsCommand
             var chat = await DbMethods.GetChatByMessageAsync(db, msg);
             var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
             var posts = user.Posts.ToList();
-            var profit = 0;
-            var postCount = 0;
+            var profit = daysPeriod != 0 ? posts.Where(p => p.Date >= DateTime.Now.AddDays(-daysPeriod)).Sum(p => p.Price) : posts.Sum(p => p.Price);
+            var postCount = daysPeriod != 0 ? posts.Count(p => p.Date >= DateTime.Now.AddDays(-daysPeriod)) : posts.Count;
             var message = string.Empty;
-            foreach (var p in posts)
-            {
-                if (p.Date >= DateTime.Now.AddDays(-daysPeriod) && daysPeriod is not 0)
-                {
-                    profit += p.Price;
-                    postCount++;
-                }
-                else if (daysPeriod is 0)
-                {
-                    profit += p.Price;
-                    postCount++;
-                }
-            }
 
             if (daysPeriod is not 0)
             {
