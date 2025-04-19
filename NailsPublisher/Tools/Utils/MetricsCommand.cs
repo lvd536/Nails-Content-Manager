@@ -81,38 +81,59 @@ public static class MetricsCommand
 
     public static async Task ProductsAsync(ITelegramBotClient botClient, Message msg) // аналитика товаров
     {
-        /*
-         * TODO: Калькуляция кол-ва времени, которое понадобится для покупки всех некупленных товаров
-        */
         using (ApplicationContext db = new ApplicationContext())
         {
             var chat = await DbMethods.GetChatByMessageAsync(db, msg);
             var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
             var products = user.Products.ToList();
-            var postsEarnings = user.Posts.ToList().Sum(p => p.Price);
-            var productsEarnings = products.Sum(p => p.Price);
-            var purchasedProducts = products.Where(p => p.IsPurchased);
-            var unPurchasedProducts = products.Where(p => !p.IsPurchased);
-            var purchasedUnPurchasedCoefficient = purchasedProducts.Count() / unPurchasedProducts.Count();
-            var purchasedAvg = purchasedProducts.Average(p => p.Price);
-            var unPurchasedAvg = unPurchasedProducts.Average(p => p.Price);
-            var allProductsAvg = purchasedAvg + unPurchasedAvg;
-            
+            var posts = user.Posts.ToList();
+
+            var postsEarnings = posts.Sum(p => (long)p.Price);
+            var productsEarnings = products.Sum(p => (long)p.Price);
+            var purchasedProducts = products.Where(p => p.IsPurchased).ToList();
+            var unPurchasedProducts = products.Where(p => !p.IsPurchased).ToList();
+            var purchasedUnPurchasedCoefficient = unPurchasedProducts.Count > 0 ? (double)purchasedProducts.Count / unPurchasedProducts.Count : 0;
+            var purchasedAvg = purchasedProducts.Any() ? purchasedProducts.Average(p => p.Price) : 0;
+            var unPurchasedAvg = unPurchasedProducts.Any() ? unPurchasedProducts.Average(p => p.Price) : 0;
+            var allProductsAvg = products.Any() ? products.Average(p => p.Price) : 0;
+            var totalUnpurchasedCost = unPurchasedProducts.Sum(p => (long)p.Price);
+
+            var last30DaysPosts = posts.Where(p => p.Date >= DateTime.Now.AddDays(-30)).ToList();
+            var earningsLast30Days = last30DaysPosts.Sum(p => (long)p.Price);
+            var avgDailyEarnings = last30DaysPosts.Any() ? (double)earningsLast30Days / 30 : 0;
+
+            string estimatedTimeMessage;
+            if (totalUnpurchasedCost == 0)
+            {
+                estimatedTimeMessage = "Нет товаров к покупке.";
+            }
+            else if (avgDailyEarnings > 0)
+            {
+                var daysRequired = Math.Ceiling((double)totalUnpurchasedCost / avgDailyEarnings);
+                estimatedTimeMessage = $"Примерно {daysRequired} дней";
+            }
+            else
+            {
+                estimatedTimeMessage = "Невозможно рассчитать (нет доходов за последние 30 дней).";
+            }
+
             var message =
-                $"<b>Аналитика товаров</b>\n" +
-                $"<blockquote> <i>Купленные</i>\n" +
-                $"<code> Всего тваров: </code> <b>{purchasedProducts.Count()}</b>\n" +
-                $"<code> Ср.Цена: </code> <b>{purchasedAvg}₽</b> </blockquote>\n" +
-                $"<blockquote> <i>Некупленные</i>\n" +
-                $"<code> Всего тваров: </code> <b>{unPurchasedProducts.Count()}</b>\n" +
-                $"<code> Ср.Цена: </code> <b>{unPurchasedAvg}₽</b></blockquote>\n" +
-                $"<blockquote> <i>Общая аналитика</i>\n" +
-                $"<code> Ср.Цена всех тваров: </code> <b>{allProductsAvg}</b>\n" +
+                "<b>Аналитика товаров</b>\n" +
+                "<blockquote> <i>Купленные</i>\n" +
+                $"<code> Всего товаров: </code> <b>{purchasedProducts.Count}</b>\n" +
+                $"<code> Ср. цена: </code> <b>{purchasedAvg:F2} ₽</b> </blockquote>\n" +
+                "<blockquote> <i>Некупленные</i>\n" +
+                $"<code> Всего товаров: </code> <b>{unPurchasedProducts.Count}</b>\n" +
+                $"<code> Ср. цена: </code> <b>{unPurchasedAvg:F2} ₽</b>\n" +
+                $"<code> Общая стоимость: </code> <b>{totalUnpurchasedCost} ₽</b>\n" +
+                $"<code> Время до покупки всех: </code> <b>{estimatedTimeMessage}</b> </blockquote>\n" +
+                "<blockquote> <i>Общая аналитика</i>\n" +
+                $"<code> Ср. цена всех товаров: </code> <b>{allProductsAvg:F2} ₽</b>\n" +
                 $"<code> Соотношение цены всех товаров к заработку с постов: </code> <b>{productsEarnings}/{postsEarnings}</b>\n" +
-                $"<code> Соотношение цены купленных товаров к заработку с постов: </code> <b>{purchasedProducts.Sum(p => p.Price)}/{postsEarnings}</b>\n" +
-                $"<code> Соотношение цены некупленных товаров к заработку с постов: </code> <b>{unPurchasedProducts.Sum(p => p.Price)}/{postsEarnings}</b>\n" +
-                $"<code> Коэфф купленных на некупленные товары: </code> <b>{purchasedUnPurchasedCoefficient}</b></blockquote>\n";
-            
+                $"<code> Соотношение цены купленных товаров к заработку с постов: </code> <b>{purchasedProducts.Sum(p => (long)p.Price)}/{postsEarnings}</b>\n" +
+                $"<code> Соотношение цены некупленных товаров к заработку с постов: </code> <b>{unPurchasedProducts.Sum(p => (long)p.Price)}/{postsEarnings}</b>\n" +
+                $"<code> Коэфф купленных на некупленные товары: </code> <b>{purchasedUnPurchasedCoefficient:F2}</b></blockquote>\n";
+
             await botClient.SendMessage(msg.Chat.Id, message, ParseMode.Html);
         }
     }
