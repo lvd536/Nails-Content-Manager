@@ -30,7 +30,7 @@ public static class ProductList
             }
             message += $"\n<blockquote><b>Общие затраты:</b> <code>{totalPrice}</code>\n" +
                        $"<b>Кол-во товаров:</b> <code>{user.Products.Count}</code>\n" +
-                       "<i>Для просмотра подробной статистики по затратам - /smetrics</i></blockquote>";
+                       "<i>Для просмотра подробной статистики по всем параметрам - /msummary</i></blockquote>";
             
             await botClient.SendMessage(msg.Chat.Id, message, ParseMode.Html);
         }
