@@ -150,14 +150,91 @@ public static class MetricsCommand
     }
     
     public static async Task SummaryAsync(ITelegramBotClient botClient, Message msg) // общая сводка
-        /*
-         * 
-         */
-    {
+    { 
         using (ApplicationContext db = new ApplicationContext())
         {
             var chat = await DbMethods.GetChatByMessageAsync(db, msg);
             var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
+            var posts = user.Posts.ToList();
+            var products = user.Products.ToList();
+            var openDates = user.OpenDates.ToList();
+
+            var totalEarnings = posts.Sum(p => (long)p.Price);
+            var totalExpenses = products.Where(p => p.IsPurchased).Sum(p => (long)p.Price);
+            var netProfit = totalEarnings - totalExpenses;
+            var earningsLast30Days = posts.Where(p => p.Date >= DateTime.Now.AddDays(-30)).Sum(p => (long)p.Price);
+            var maxPostEarning = posts.Any() ? posts.Max(p => p.Price) : 0;
+            var minPostEarning = posts.Any() ? posts.Min(p => p.Price) : 0;
+
+            var totalPosts = posts.Count;
+            var postsLast30Days = posts.Count(p => p.Date >= DateTime.Now.AddDays(-30));
+            var postsLast7Days = posts.Count(p => p.Date >= DateTime.Now.AddDays(-7));
+            var avgEarningsPerPost = totalPosts > 0 ? (double)totalEarnings / totalPosts : 0;
+            var oldestPostDate = posts.Any() ? posts.Min(p => p.Date).ToString("dd.MM.yyyy") : "Нет данных";
+            var latestPostDate = posts.Any() ? posts.Max(p => p.Date).ToString("dd.MM.yyyy") : "Нет данных";
+            var daysSinceLastPost = posts.Any() ? (DateTime.Now - posts.Max(p => p.Date)).Days : 0;
+
+            var totalProducts = products.Count;
+            var purchasedProducts = products.Count(p => p.IsPurchased);
+            var productsToPurchase = products.Count(p => !p.IsPurchased);
+            var totalCostPurchased = products.Where(p => p.IsPurchased).Sum(p => (long)p.Price);
+            var totalCostToPurchase = products.Where(p => !p.IsPurchased).Sum(p => (long)p.Price);
+            var avgPricePurchased = purchasedProducts > 0 ? (double)totalCostPurchased / purchasedProducts : 0;
+            var avgPriceToPurchase = productsToPurchase > 0 ? (double)totalCostToPurchase / productsToPurchase : 0;
+            var mostExpensivePurchased = products.Where(p => p.IsPurchased).Any() ? products.Where(p => p.IsPurchased).Max(p => p.Price) : 0;
+            var mostExpensiveToPurchase = products.Where(p => !p.IsPurchased).Any() ? products.Where(p => !p.IsPurchased).Max(p => p.Price) : 0;
+
+            var totalOpenDates = openDates.Count(od => od.IsOpen);
+            var totalBookedDates = openDates.Count(od => !od.IsOpen);
+            var upcomingOpenDates30Days = openDates.Count(od => od.IsOpen && od.Date >= DateTime.Now && od.Date <= DateTime.Now.AddDays(30));
+            var upcomingOpenDates7Days = openDates.Count(od => od.IsOpen && od.Date >= DateTime.Now && od.Date <= DateTime.Now.AddDays(7));
+            var nextOpenDate = openDates.Where(od => od.IsOpen && od.Date >= DateTime.Now).Any() ? openDates.Where(od => od.IsOpen && od.Date >= DateTime.Now).Min(od => od.Date).ToString("dd.MM.yyyy") : "Нет данных";
+            var daysUntilNextOpen = openDates.Where(od => od.IsOpen && od.Date >= DateTime.Now).Any() ? (openDates.Where(od => od.IsOpen && od.Date >= DateTime.Now).Min(od => od.Date) - DateTime.Now).Days : 0;
+
+            var earningsPerDayLast30 = posts.Where(p => p.Date >= DateTime.Now.AddDays(-30)).Any() ? (double)earningsLast30Days / 30 : 0;
+            var expenseRatio = totalEarnings > 0 ? (double)totalExpenses / totalEarnings * 100 : 0;
+            var activityRateLast30 = totalPosts > 0 ? (double)postsLast30Days / totalPosts * 100 : 0;
+
+            var message =
+                "<b>📊 Общая сводка</b>\n\n" +
+                "<b>💰 Финансовый обзор</b>\n" +
+                $"<code>Общий доход:</code> <b>{totalEarnings} ₽</b>\n" +
+                $"<code>Доход за 30 дней:</code> <b>{earningsLast30Days} ₽</b>\n" +
+                $"<code>Общие расходы:</code> <b>{totalExpenses} ₽</b>\n" +
+                $"<code>Чистая прибыль:</code> <b>{netProfit} ₽</b>{(netProfit < 0 ? " <i>(дефицит)</i>" : "")}\n" +
+                $"<code>Макс. доход с поста:</code> <b>{maxPostEarning} ₽</b>\n" +
+                $"<code>Мин. доход с поста:</code> <b>{minPostEarning} ₽</b>\n\n" +
+                "<b>📈 Сводка активности</b>\n" +
+                $"<code>Всего постов:</code> <b>{totalPosts}</b>\n" +
+                $"<code>Постов за 30 дней:</code> <b>{postsLast30Days}</b>\n" +
+                $"<code>Постов за 7 дней:</code> <b>{postsLast7Days}</b>\n" +
+                $"<code>Средний доход за пост:</code> <b>{avgEarningsPerPost:F2} ₽</b>\n" +
+                $"<code>Дата первого поста:</code> <b>{oldestPostDate}</b>\n" +
+                $"<code>Дата последнего поста:</code> <b>{latestPostDate}</b>\n" +
+                $"<code>Дней с последнего поста:</code> <b>{daysSinceLastPost}</b>\n\n" +
+                "<b>🛒 Информация о товарах</b>\n" +
+                $"<code>Всего товаров:</code> <b>{totalProducts}</b>\n" +
+                $"<code>Купленные товары:</code> <b>{purchasedProducts}</b>\n" +
+                $"<code>Товары к покупке:</code> <b>{productsToPurchase}</b>\n" +
+                $"<code>Стоимость купленных:</code> <b>{totalCostPurchased} ₽</b>\n" +
+                $"<code>Средняя цена купленных:</code> <b>{avgPricePurchased:F2} ₽</b>\n" +
+                $"<code>Макс. цена купленного:</code> <b>{mostExpensivePurchased} ₽</b>\n" +
+                $"<code>Стоимость к покупке:</code> <b>{totalCostToPurchase} ₽</b>\n" +
+                $"<code>Средняя цена к покупке:</code> <b>{avgPriceToPurchase:F2} ₽</b>\n" +
+                $"<code>Макс. цена к покупке:</code> <b>{mostExpensiveToPurchase} ₽</b>\n\n" +
+                "<b>📅 Доступность</b>\n" +
+                $"<code>Всего свободных дат:</code> <b>{totalOpenDates}</b>\n" +
+                $"<code>Забронированных дат:</code> <b>{totalBookedDates}</b>\n" +
+                $"<code>Свободно на 30 дней:</code> <b>{upcomingOpenDates30Days}</b>\n" +
+                $"<code>Свободно на 7 дней:</code> <b>{upcomingOpenDates7Days}</b>\n" +
+                $"<code>Следующая свободная дата:</code> <b>{nextOpenDate}</b>\n" +
+                $"<code>Дней до след. даты:</code> <b>{daysUntilNextOpen}</b>\n\n" +
+                "<b>📉 Дополнительные метрики</b>\n" +
+                $"<code>Доход в день (30 дн):</code> <b>{earningsPerDayLast30:F2} ₽</b>\n" +
+                $"<code>Доля расходов:</code> <b>{expenseRatio:F1}%</b>\n" +
+                $"<code>Активность (30 дн):</code> <b>{activityRateLast30:F1}%</b>";
+
+            await botClient.SendMessage(msg.Chat.Id, message, ParseMode.Html);
         }
     }
 }
