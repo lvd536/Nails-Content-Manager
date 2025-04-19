@@ -5,7 +5,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace NailsPublisher.Tools.PersonalTools;
 
-public static class ChangeProductStatus
+public static class ProductChangeStatus
 {
     public static async Task ChangeProductStatusAsync(ITelegramBotClient botClient, Message msg, int id, bool status)
     {
