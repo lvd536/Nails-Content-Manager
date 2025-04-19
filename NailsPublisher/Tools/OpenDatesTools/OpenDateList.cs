@@ -24,6 +24,7 @@ public static class OpenDateList
             foreach (var d in datesList)
             {
                 message += $"<blockquote><b>Номер записи:</b> <i>{d.Id}</i>\n" +
+                           $"<b>Статус:</b> <code>{(d.IsOpen ? "Свободно" : "Занято")}</code>\n" +
                            $"<b>Дата:</b> <code>{d.Date:dd.MM HH:mm}</code></blockquote>\n";
             }
             await botClient.SendMessage(msg.Chat.Id, message, ParseMode.Html);
