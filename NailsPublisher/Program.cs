@@ -61,7 +61,14 @@ async Task OnMessage(Message msg, UpdateType type)
                     var status = secondArgument == "+";
                     await ProductChangeStatus.ChangeProductStatusAsync(bot, msg, changeStatusId, status);
                 }
-                else await bot.SendMessage(msg.Chat.Id, "Вы неверно указали номер поста. Пример: /productStatus 5 + | /productStatus +/- (куплено/некуплено)", ParseMode.Html);
+                else await bot.SendMessage(msg.Chat.Id, "Вы неверно указали номер продукта. Пример: /productStatus 5 + | /productStatus +/- (куплено/некуплено)", ParseMode.Html);
+                break;
+            case "/productDelete":
+                if (int.TryParse(firstArgument, out int deleteProductId))
+                {
+                    await ProductDelete.DeleteProductAsync(bot, msg, deleteProductId);
+                }
+                else await bot.SendMessage(msg.Chat.Id, "Вы неверно указали номер продукта. Пример: /productDelete 5 | /productDelete id", ParseMode.Html);
                 break;
             case "/shopper":
                 await ProductList.ShopperListCmdAsync(bot, msg);

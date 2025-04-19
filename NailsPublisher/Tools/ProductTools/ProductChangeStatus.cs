@@ -17,7 +17,7 @@ public static class ProductChangeStatus
 
             if (targetProduct == null)
             {
-                await botClient.SendMessage(msg.Chat.Id, $"<i>Продукта под номером {id} не найден</i>", ParseMode.Html);
+                await botClient.SendMessage(msg.Chat.Id, $"<i>Продукт под номером {id} не найден</i>", ParseMode.Html);
                 return;
             }
             if (targetProduct.IsPurchased == status)
