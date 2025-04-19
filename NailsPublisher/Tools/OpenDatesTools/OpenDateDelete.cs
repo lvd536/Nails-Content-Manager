@@ -20,7 +20,7 @@ public static class OpenDateDelete
             var user = await DbMethods.GetUserByChatAsync(db, chat, msg);
             var datesList = user?.OpenDates.ToList();
 
-            if (user.OpenDates.Count <= 0)
+            if (user?.OpenDates.Count <= 0)
             {
                 await botClient.SendMessage(msg.From.Id,"У вас нет добавленных записей. Создайте хотябы 1 запись с помощью /ccreate", ParseMode.Html);
                 return;
@@ -32,10 +32,10 @@ public static class OpenDateDelete
                 return;
             }
             var removeEntity = datesList.FirstOrDefault(d => d.Id == id);
-            user.OpenDates.Remove(removeEntity);
+            user?.OpenDates.Remove(removeEntity);
             await db.SaveChangesAsync();
-            await botClient.SendMessage(msg.Chat.Id, $"Дата {removeEntity.Date} успешно удалена!", ParseMode.Html);
-            if (user.ChannelId != 0 && chat.LastDateMessageId != 0) await SendOpenDates.SendOpenDatesAsync(botClient, msg, false);
+            await botClient.SendMessage(msg.Chat.Id, $"Дата {removeEntity?.Date} успешно удалена!", ParseMode.Html);
+            if (user?.ChannelId != 0 && chat.LastDateMessageId != 0) await SendOpenDates.SendOpenDatesAsync(botClient, msg, false);
         }
     }
 }

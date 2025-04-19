@@ -21,7 +21,7 @@ public static class PostCancel
             }
             else
             {
-                post.Step = "Finally";
+                user.Posts.Remove(post);
                 await db.SaveChangesAsync();
                 await botClient.SendMessage(msg.Chat.Id, "Отменил создание поста!", ParseMode.Html);
             }

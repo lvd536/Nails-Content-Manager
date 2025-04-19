@@ -70,6 +70,9 @@ async Task OnMessage(Message msg, UpdateType type)
                 }
                 else await bot.SendMessage(msg.Chat.Id, "Вы неверно указали номер продукта. Пример: /productDelete 5 | /productDelete id", ParseMode.Html);
                 break;
+            case "/productCancel":
+                await ProductCancel.ProductCancelAsync(bot, msg);
+                break;
             case "/shopper":
                 await ProductList.ShopperListCmdAsync(bot, msg);
                 break;
