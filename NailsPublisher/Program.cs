@@ -55,6 +55,14 @@ async Task OnMessage(Message msg, UpdateType type)
             case "/product":
                 await ProductStart.ProductCmdAsync(bot, msg);
                 break;
+            case "/productStatus":
+                if (int.TryParse(firstArgument, out int changeStatusId))
+                {
+                    var status = secondArgument == "+";
+                    await ChangeProductStatus.ChangeProductStatusAsync(bot, msg, changeStatusId, status);
+                }
+                else await bot.SendMessage(msg.Chat.Id, "Вы неверно указали номер поста. Пример: /productStatus 5 + | /productStatus +/- (куплено/некуплено)", ParseMode.Html);
+                break;
             case "/shopper":
                 await ProductList.ShopperListCmdAsync(bot, msg);
                 break;
